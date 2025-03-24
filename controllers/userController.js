@@ -1,5 +1,6 @@
 const User = require('../models/userModel');
 const jwt = require('jsonwebtoken');
+const Order = require('../models/orderModel');
 
 const registerUser = async (req, res) => {
   const { name, email, password } = req.body;
@@ -58,4 +59,13 @@ const getMe = async (req, res) => {
   }
 };
 
-module.exports = { registerUser, loginUser, generateToken, getMe };
+const getUserOrders = async (req, res) => {
+  try {
+    const orders = await Order.find({ userId: req.user.id }).populate('items.productId', 'name price');
+    res.json(orders);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+module.exports = { registerUser, loginUser, getMe, getUserOrders };
