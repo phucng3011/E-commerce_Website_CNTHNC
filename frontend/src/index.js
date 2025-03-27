@@ -1,11 +1,15 @@
 import React from 'react';
-import ReactDOM from 'react-dom';
+import ReactDOM from 'react-dom/client';
+import './index.css';
 import App from './App';
 import { CartProvider } from './context/CartContext';
+import '@fortawesome/fontawesome-free/css/all.min.css';
 
-ReactDOM.render(
-  <CartProvider>
-    <App />
-  </CartProvider>,
-  document.getElementById('root')
+const root = ReactDOM.createRoot(document.getElementById('root'));
+root.render(
+  <React.StrictMode>
+    <CartProvider>
+      <App />
+    </CartProvider>
+  </React.StrictMode>
 );

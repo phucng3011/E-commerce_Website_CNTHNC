@@ -3,100 +3,293 @@ import axios from 'axios';
 
 const AdminDashboard = () => {
   const [products, setProducts] = useState([]);
-  const [orders, setOrders] = useState([]);
-  const [newProduct, setNewProduct] = useState({ name: '', price: '', description: '' });
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [formData, setFormData] = useState({
+    name: '',
+    price: '',
+    description: '',
+    category: '',
+    brand: '',
+    image: '',
+    inStock: true,
+    rating: 0,
+  });
+  const [editingProductId, setEditingProductId] = useState(null);
 
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    const fetchData = async () => {
-      try {
-        const [productRes, orderRes] = await Promise.all([
-          axios.get('http://localhost:5000/api/products', { headers: { Authorization: `Bearer ${token}` } }),
-          axios.get('http://localhost:5000/api/orders', { headers: { Authorization: `Bearer ${token}` } }),
-        ]);
-        setProducts(productRes.data);
-        setOrders(orderRes.data);
-      } catch (err) {
-        console.error('Error fetching data:', err);
-      }
-    };
-    fetchData();
+    fetchProducts();
   }, []);
 
-  const handleAddProduct = async (e) => {
+  const fetchProducts = async () => {
+    setLoading(true);
+    try {
+      const response = await axios.get('http://localhost:5000/api/products');
+      setProducts(response.data.products || []);
+      setLoading(false);
+    } catch (err) {
+      setError('Failed to fetch products');
+      setLoading(false);
+    }
+  };
+
+  const handleInputChange = (e) => {
+    const { name, value, type, checked } = e.target;
+    setFormData({
+      ...formData,
+      [name]: type === 'checkbox' ? checked : value,
+    });
+  };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
     const token = localStorage.getItem('token');
+
     try {
-      const res = await axios.post('http://localhost:5000/api/products/create', newProduct, {
-        headers: { Authorization: `Bearer ${token}` },
+      if (editingProductId) {
+        // Update product
+        await axios.put(
+          `http://localhost:5000/api/products/${editingProductId}`,
+          formData,
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+        setEditingProductId(null);
+      } else {
+        // Create new product
+        await axios.post('http://localhost:5000/api/products', formData, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+      }
+      setFormData({
+        name: '',
+        price: '',
+        description: '',
+        category: '',
+        brand: '',
+        image: '',
+        inStock: true,
+        rating: 0,
       });
-      setProducts([...products, res.data]);
-      setNewProduct({ name: '', price: '', description: '' });
+      fetchProducts(); // Refresh product list
     } catch (err) {
-      console.error('Error adding product:', err);
+      setError(err.response?.data?.message || 'Failed to save product');
     }
   };
 
-  const handleUpdateStatus = async (orderId, status) => {
+  const handleEdit = (product) => {
+    setEditingProductId(product._id);
+    setFormData({
+      name: product.name,
+      price: product.price,
+      description: product.description || '',
+      category: product.category || '',
+      brand: product.brand || '',
+      image: product.image || '',
+      inStock: product.inStock,
+      rating: product.rating,
+    });
+  };
+
+  const handleDelete = async (id) => {
     const token = localStorage.getItem('token');
     try {
-      const res = await axios.put(`http://localhost:5000/api/orders/${orderId}`, { paymentStatus: status }, {
+      await axios.delete(`http://localhost:5000/api/products/${id}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      setOrders(orders.map(o => o._id === orderId ? res.data : o));
+      fetchProducts(); // Refresh product list
     } catch (err) {
-      console.error('Error updating status:', err);
+      setError('Failed to delete product');
     }
   };
 
+  if (loading) return <div className="text-center py-10">Loading...</div>;
+  if (error) return <div className="text-center py-10 text-red-500">{error}</div>;
+
   return (
-    <div>
-      <h2>Admin Dashboard</h2>
-      <section>
-        <h3>Add Product</h3>
-        <form onSubmit={handleAddProduct}>
-          <input
-            type="text"
-            value={newProduct.name}
-            onChange={(e) => setNewProduct({ ...newProduct, name: e.target.value })}
-            placeholder="Name"
-            required
-          />
-          <input
-            type="number"
-            value={newProduct.price}
-            onChange={(e) => setNewProduct({ ...newProduct, price: e.target.value })}
-            placeholder="Price"
-            required
-          />
-          <input
-            type="text"
-            value={newProduct.description}
-            onChange={(e) => setNewProduct({ ...newProduct, description: e.target.value })}
-            placeholder="Description"
-          />
-          <button type="submit">Add Product</button>
-        </form>
-      </section>
-      <section>
-        <h3>Products</h3>
-        <ul>
-          {products.map((p) => (
-            <li key={p._id}>{p.name} - ${p.price}</li>
+    <div className="section">
+      <div className="container mx-auto px-4">
+        <h2 className="text-2xl font-bold mb-6">Admin Dashboard</h2>
+
+        {/* Add/Edit Product Form */}
+        <div className="mb-10">
+          <h3 className="text-xl font-bold mb-4">
+            {editingProductId ? 'Edit Product' : 'Add New Product'}
+          </h3>
+          <form onSubmit={handleSubmit} className="space-y-4 max-w-lg">
+            <div className="form-group">
+              <label htmlFor="name" className="block mb-1">
+                Name
+              </label>
+              <input
+                type="text"
+                id="name"
+                name="name"
+                value={formData.name}
+                onChange={handleInputChange}
+                className="w-full p-3 border border-gray-300 rounded"
+                placeholder="Enter product name"
+                required
+              />
+            </div>
+            <div className="form-group">
+              <label htmlFor="price" className="block mb-1">
+                Price
+              </label>
+              <input
+                type="number"
+                id="price"
+                name="price"
+                value={formData.price}
+                onChange={handleInputChange}
+                className="w-full p-3 border border-gray-300 rounded"
+                placeholder="Enter price"
+                required
+              />
+            </div>
+            <div className="form-group">
+              <label htmlFor="description" className="block mb-1">
+                Description
+              </label>
+              <textarea
+                id="description"
+                name="description"
+                value={formData.description}
+                onChange={handleInputChange}
+                className="w-full p-3 border border-gray-300 rounded"
+                placeholder="Enter description"
+              />
+            </div>
+            <div className="form-group">
+              <label htmlFor="category" className="block mb-1">
+                Category
+              </label>
+              <input
+                type="text"
+                id="category"
+                name="category"
+                value={formData.category}
+                onChange={handleInputChange}
+                className="w-full p-3 border border-gray-300 rounded"
+                placeholder="Enter category (e.g., Laptops)"
+              />
+            </div>
+            <div className="form-group">
+              <label htmlFor="brand" className="block mb-1">
+                Brand
+              </label>
+              <input
+                type="text"
+                id="brand"
+                name="brand"
+                value={formData.brand}
+                onChange={handleInputChange}
+                className="w-full p-3 border border-gray-300 rounded"
+                placeholder="Enter brand (e.g., Dell)"
+              />
+            </div>
+            <div className="form-group">
+              <label htmlFor="image" className="block mb-1">
+                Image URL
+              </label>
+              <input
+                type="text"
+                id="image"
+                name="image"
+                value={formData.image}
+                onChange={handleInputChange}
+                className="w-full p-3 border border-gray-300 rounded"
+                placeholder="Enter image URL"
+              />
+            </div>
+            <div className="form-group">
+              <label htmlFor="inStock" className="flex items-center">
+                <input
+                  type="checkbox"
+                  id="inStock"
+                  name="inStock"
+                  checked={formData.inStock}
+                  onChange={handleInputChange}
+                  className="mr-2"
+                />
+                In Stock
+              </label>
+            </div>
+            <div className="form-group">
+              <label htmlFor="rating" className="block mb-1">
+                Rating (0-5)
+              </label>
+              <input
+                type="number"
+                id="rating"
+                name="rating"
+                value={formData.rating}
+                onChange={handleInputChange}
+                className="w-full p-3 border border-gray-300 rounded"
+                placeholder="Enter rating"
+                min="0"
+                max="5"
+                step="0.1"
+              />
+            </div>
+            <button
+              type="submit"
+              className="w-full bg-red-600 text-white py-3 rounded hover:bg-red-700 transition-colors"
+            >
+              {editingProductId ? 'Update Product' : 'Add Product'}
+            </button>
+            {editingProductId && (
+              <button
+                type="button"
+                onClick={() => {
+                  setEditingProductId(null);
+                  setFormData({
+                    name: '',
+                    price: '',
+                    description: '',
+                    category: '',
+                    brand: '',
+                    image: '',
+                    inStock: true,
+                    rating: 0,
+                  });
+                }}
+                className="w-full bg-gray-600 text-white py-3 rounded hover:bg-gray-700 transition-colors mt-2"
+              >
+                Cancel Edit
+              </button>
+            )}
+          </form>
+        </div>
+
+        {/* Product List */}
+        <h3 className="text-xl font-bold mb-4">Products</h3>
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+          {products.map((product) => (
+            <div key={product._id} className="border p-4 rounded">
+              <h4 className="text-lg font-bold">{product.name}</h4>
+              <p>Price: ${product.price}</p>
+              <p>Category: {product.category || 'N/A'}</p>
+              <p>Brand: {product.brand || 'N/A'}</p>
+              <p>In Stock: {product.inStock ? 'Yes' : 'No'}</p>
+              <p>Rating: {product.rating}</p>
+              <div className="mt-2 flex space-x-2">
+                <button
+                  onClick={() => handleEdit(product)}
+                  className="bg-blue-600 text-white py-1 px-3 rounded hover:bg-blue-700"
+                >
+                  Edit
+                </button>
+                <button
+                  onClick={() => handleDelete(product._id)}
+                  className="bg-red-600 text-white py-1 px-3 rounded hover:bg-red-700"
+                >
+                  Delete
+                </button>
+              </div>
+            </div>
           ))}
-        </ul>
-      </section>
-      <section>
-        <h3>Orders</h3>
-        <ul>
-          {orders.map((o) => (
-            <li key={o._id}>
-              Order by {o.userId.name} - Total: ${o.total} - Status: {o.paymentStatus}
-              <button onClick={() => handleUpdateStatus(o._id, 'completed')}>Mark Completed</button>
-            </li>
-          ))}
-        </ul>
-      </section>
+        </div>
+      </div>
     </div>
   );
 };

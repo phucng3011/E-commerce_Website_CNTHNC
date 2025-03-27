@@ -9,6 +9,7 @@ const registerUser = async (req, res) => {
     if (userExists) {
       return res.status(400).json({ message: 'User already exists' });
     }
+
     const user = await User.create({ name, email, password });
     if (user) {
       res.status(201).json({
@@ -22,6 +23,7 @@ const registerUser = async (req, res) => {
       res.status(400).json({ message: 'Invalid user data' });
     }
   } catch (error) {
+    console.error('Error in registerUser:', error);
     res.status(500).json({ message: error.message });
   }
 };
@@ -42,6 +44,7 @@ const loginUser = async (req, res) => {
       res.status(401).json({ message: 'Invalid email or password' });
     }
   } catch (error) {
+    console.error('Error in loginUser:', error);
     res.status(500).json({ message: error.message });
   }
 };
@@ -55,6 +58,7 @@ const getMe = async (req, res) => {
     const user = await User.findById(req.user.id).select('-password');
     res.json(user);
   } catch (error) {
+    console.error('Error in getMe:', error);
     res.status(500).json({ message: error.message });
   }
 };
@@ -64,6 +68,7 @@ const getUserOrders = async (req, res) => {
     const orders = await Order.find({ userId: req.user.id }).populate('items.productId', 'name price');
     res.json(orders);
   } catch (error) {
+    console.error('Error in getUserOrders:', error);
     res.status(500).json({ message: error.message });
   }
 };
