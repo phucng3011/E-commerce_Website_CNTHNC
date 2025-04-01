@@ -1,3 +1,4 @@
+// frontend/src/components/AdminDashboard.js
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 
@@ -14,6 +15,9 @@ const AdminDashboard = () => {
     image: '',
     inStock: true,
     rating: 0,
+    salesCount: 0,
+    isHotDeal: false,
+    discount: 0,
   });
   const [editingProductId, setEditingProductId] = useState(null);
 
@@ -44,19 +48,30 @@ const AdminDashboard = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     const token = localStorage.getItem('token');
+    console.log('Token:', token);
+
+    // Convert string values to numbers
+    const formattedData = {
+      ...formData,
+      price: Number(formData.price),
+      rating: Number(formData.rating),
+      salesCount: Number(formData.salesCount),
+      discount: Number(formData.discount),
+    };
 
     try {
       if (editingProductId) {
         // Update product
         await axios.put(
           `http://localhost:5000/api/products/${editingProductId}`,
-          formData,
+          formattedData,
           { headers: { Authorization: `Bearer ${token}` } }
         );
         setEditingProductId(null);
       } else {
         // Create new product
-        await axios.post('http://localhost:5000/api/products', formData, {
+        console.log('Sending POST request with data:', formattedData);
+        await axios.post('http://localhost:5000/api/products/create', formattedData, {
           headers: { Authorization: `Bearer ${token}` },
         });
       }
@@ -69,10 +84,19 @@ const AdminDashboard = () => {
         image: '',
         inStock: true,
         rating: 0,
+        salesCount: 0,
+        isHotDeal: false,
+        discount: 0,
       });
-      fetchProducts(); // Refresh product list
+      fetchProducts();
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to save product');
+      console.error('Error saving product:', err.response?.data || err.message);
+      setError(
+        err.response?.data?.message ||
+        (typeof err.response?.data === 'string' && err.response.data.includes('Cannot POST')
+          ? 'Server error: POST route not found'
+          : 'Failed to save product')
+      );
     }
   };
 
@@ -87,6 +111,9 @@ const AdminDashboard = () => {
       image: product.image || '',
       inStock: product.inStock,
       rating: product.rating,
+      salesCount: product.salesCount || 0,
+      isHotDeal: product.isHotDeal || false,
+      discount: product.discount || 0,
     });
   };
 
@@ -96,7 +123,7 @@ const AdminDashboard = () => {
       await axios.delete(`http://localhost:5000/api/products/${id}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      fetchProducts(); // Refresh product list
+      fetchProducts();
     } catch (err) {
       setError('Failed to delete product');
     }
@@ -231,6 +258,50 @@ const AdminDashboard = () => {
                 step="0.1"
               />
             </div>
+            <div className="form-group">
+              <label htmlFor="salesCount" className="block mb-1">
+                Sales Count
+              </label>
+              <input
+                type="number"
+                id="salesCount"
+                name="salesCount"
+                value={formData.salesCount}
+                onChange={handleInputChange}
+                className="w-full p-3 border border-gray-300 rounded"
+                placeholder="Enter sales count"
+                min="0"
+              />
+            </div>
+            <div className="form-group">
+              <label htmlFor="isHotDeal" className="flex items-center">
+                <input
+                  type="checkbox"
+                  id="isHotDeal"
+                  name="isHotDeal"
+                  checked={formData.isHotDeal}
+                  onChange={handleInputChange}
+                  className="mr-2"
+                />
+                Is Hot Deal
+              </label>
+            </div>
+            <div className="form-group">
+              <label htmlFor="discount" className="block mb-1">
+                Discount (%)
+              </label>
+              <input
+                type="number"
+                id="discount"
+                name="discount"
+                value={formData.discount}
+                onChange={handleInputChange}
+                className="w-full p-3 border border-gray-300 rounded"
+                placeholder="Enter discount percentage"
+                min="0"
+                max="100"
+              />
+            </div>
             <button
               type="submit"
               className="w-full bg-red-600 text-white py-3 rounded hover:bg-red-700 transition-colors"
@@ -251,6 +322,9 @@ const AdminDashboard = () => {
                     image: '',
                     inStock: true,
                     rating: 0,
+                    salesCount: 0,
+                    isHotDeal: false,
+                    discount: 0,
                   });
                 }}
                 className="w-full bg-gray-600 text-white py-3 rounded hover:bg-gray-700 transition-colors mt-2"
@@ -272,6 +346,10 @@ const AdminDashboard = () => {
               <p>Brand: {product.brand || 'N/A'}</p>
               <p>In Stock: {product.inStock ? 'Yes' : 'No'}</p>
               <p>Rating: {product.rating}</p>
+              <p>Sales Count: {product.salesCount || 0}</p>
+              <p>Hot Deal: {product.isHotDeal ? 'Yes' : 'No'}</p>
+              <p>Discount: {product.discount || 0}%</p>
+              <p>Created At: {new Date(product.createdAt).toLocaleDateString()}</p>
               <div className="mt-2 flex space-x-2">
                 <button
                   onClick={() => handleEdit(product)}

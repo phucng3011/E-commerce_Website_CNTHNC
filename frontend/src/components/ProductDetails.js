@@ -1,395 +1,374 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import axios from 'axios';
-import { useContext } from 'react';
 import { CartContext } from '../context/CartContext';
+import { toast } from 'react-toastify';
 
 const ProductDetails = () => {
   const { id } = useParams();
-  const [product, setProduct] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [quantity, setQuantity] = useState(1);
-  const [activeTab, setActiveTab] = useState('description');
-  const [currentImage, setCurrentImage] = useState(0);
   const { addToCart } = useContext(CartContext);
+  const [product, setProduct] = useState(null);
+  const [relatedProducts, setRelatedProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [quantity, setQuantity] = useState(1);
+  const [selectedImage, setSelectedImage] = useState('');
+  const [activeTab, setActiveTab] = useState('description');
+  const [review, setReview] = useState({ rating: 5, comment: '' });
+  const [newsletterEmail, setNewsletterEmail] = useState(''); // State for newsletter input
 
   useEffect(() => {
     const fetchProduct = async () => {
       try {
         const response = await axios.get(`http://localhost:5000/api/products/${id}`);
         setProduct(response.data);
-        setLoading(false);
-      } catch (error) {
-        console.error('Error fetching product:', error);
+        setSelectedImage(response.data.image);
+
+        if (response.data.category) {
+          console.log('Fetching related products for category:', response.data.category);
+          const relatedResponse = await axios.get(
+            `http://localhost:5000/api/products?category=${response.data.category}&limit=4`
+          );
+          console.log('Related Response:', relatedResponse);
+          console.log('Related Response Data:', relatedResponse.data);
+          const relatedData = Array.isArray(relatedResponse.data) ? relatedResponse.data : [];
+          setRelatedProducts(relatedData.filter(p => p._id !== id));
+        }
+      } catch (err) {
+        console.error('Error fetching product:', {
+          message: err.message,
+          response: err.response?.data,
+          status: err.response?.status,
+        });
+        setError(err.response?.data?.message || 'Failed to load product');
+      } finally {
         setLoading(false);
       }
     };
     fetchProduct();
+
+    // Cleanup: Reset newsletter email when component unmounts
+    return () => {
+      setNewsletterEmail('');
+    };
   }, [id]);
 
   const handleAddToCart = async () => {
     try {
       await addToCart(id, quantity);
-      alert('Product added to cart!');
-    } catch (error) {
-      alert('Please log in to add items to your cart.');
+      toast.success(`${product.name} added to cart!`);
+    } catch (err) {
+      toast.error('Failed to add product to cart');
+    }
+  };
+
+  const handleReviewSubmit = async (e) => {
+    e.preventDefault();
+    const token = localStorage.getItem('token');
+    if (!token) {
+      toast.error('Please log in to submit a review');
+      return;
+    }
+
+    try {
+      await axios.post(
+        `http://localhost:5000/api/products/${id}/reviews`,
+        { rating: review.rating, comment: review.comment },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      toast.success('Review submitted successfully!');
+      const response = await axios.get(`http://localhost:5000/api/products/${id}`);
+      setProduct(response.data);
+      setReview({ rating: 5, comment: '' });
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to submit review');
+    }
+  };
+
+  const handleNewsletterSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      await axios.post('http://localhost:5000/api/newsletter', { email: newsletterEmail });
+      toast.success('Subscribed successfully!');
+      setNewsletterEmail(''); // Clear input after successful submission
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to subscribe');
     }
   };
 
   if (loading) return <div className="text-center py-10">Loading...</div>;
-  if (!product) return <div className="text-center py-10">Product not found.</div>;
-
-  const images = product.images || [
-    '/img/product01.png',
-    '/img/product03.png',
-    '/img/product06.png',
-    '/img/product08.png',
-  ];
+  if (error) return <div className="text-center py-10 text-red-500">{error}</div>;
+  if (!product) return <div className="text-center py-10">Product not found</div>;
 
   return (
-    <div className="section">
-      <div className="container mx-auto px-4">
-        {/* Breadcrumb */}
-        <div id="breadcrumb" className="mb-6">
-          <ul className="breadcrumb-tree flex space-x-2 text-gray-600">
-            <li><Link to="/" className="hover:text-red-600">Home</Link></li>
-            <li><Link to="/products" className="hover:text-red-600">All Categories</Link></li>
-            <li><Link to="/products" className="hover:text-red-600">{product.category}</Link></li>
-            <li className="text-gray-800">{product.name}</li>
-          </ul>
-        </div>
+    <div className="min-h-screen bg-gray-100">
+      <div className="container mx-auto px-4 py-4">
+        <ul className="flex space-x-2 text-gray-600 text-sm">
+          <li><Link to="/" className="hover:text-red-600">Home</Link></li>
+          <li>/</li>
+          <li><Link to="/products" className="hover:text-red-600">All Categories</Link></li>
+          <li>/</li>
+          <li><Link to={`/products?category=${product.category}`} className="hover:text-red-600">{product.category}</Link></li>
+          <li>/</li>
+          <li className="text-gray-800">{product.name}</li>
+        </ul>
+      </div>
 
-        <div className="row grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* Product Main Image */}
-          <div className="col-md-5 col-md-push-2 order-2 md:order-1">
-            <div id="product-main-img">
-              <div className="product-preview">
+      <div className="container mx-auto px-4 py-8 bg-white">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          <div className="flex">
+            <div className="flex flex-col space-y-4 mr-4">
+              {[product.image, product.image, product.image].map((img, index) => (
                 <img
-                  src={images[currentImage]}
-                  alt={product.name}
-                  className="w-full h-96 object-cover rounded-lg"
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* Product Thumbnail Images */}
-          <div className="col-md-2 col-md-pull-5 order-1 md:order-2">
-            <div id="product-imgs" className="flex flex-col space-y-2">
-              {images.map((img, index) => (
-                <div
                   key={index}
-                  className={`product-preview cursor-pointer ${
-                    currentImage === index ? 'border-2 border-red-600' : ''
-                  }`}
-                  onClick={() => setCurrentImage(index)}
-                >
-                  <img
-                    src={img}
-                    alt={`Thumbnail ${index + 1}`}
-                    className="w-full h-24 object-cover rounded-lg"
-                  />
-                </div>
+                  src={img || 'https://via.placeholder.com/100'}
+                  alt={`Thumbnail ${index}`}
+                  className={`w-20 h-20 object-cover cursor-pointer border-2 ${selectedImage === img ? 'border-red-600' : 'border-gray-300'}`}
+                  onClick={() => setSelectedImage(img)}
+                />
               ))}
             </div>
+            <div className="flex-1">
+              <img
+                src={selectedImage || 'https://via.placeholder.com/400'}
+                alt={product.name}
+                className="w-full h-auto object-cover rounded"
+              />
+            </div>
           </div>
 
-          {/* Product Details */}
-          <div className="col-md-5 order-3">
-            <div className="product-details">
-              <h2 className="product-name text-2xl font-bold">{product.name}</h2>
-              <div className="flex items-center space-x-2">
-                <div className="product-rating flex text-yellow-400">
-                  {[...Array(5)].map((_, i) => (
-                    <i
-                      key={i}
-                      className={`fa fa-star${i < (product.rating || 4) ? '' : '-o'}`}
-                    ></i>
-                  ))}
-                </div>
-                <Link to="#reviews" className="review-link text-gray-600 hover:text-red-600">
-                  {product.reviews?.length || 10} Review(s) | Add your review
-                </Link>
-              </div>
-              <div className="mt-2">
-                <h3 className="product-price text-red-600 text-xl font-bold">
-                  ${product.price.toFixed(2)}{' '}
-                  {product.oldPrice && (
-                    <del className="product-old-price text-gray-400">
-                      ${product.oldPrice.toFixed(2)}
-                    </del>
-                  )}
-                </h3>
-                <span className="product-available text-green-600">
-                  {product.inStock ? 'In Stock' : 'Out of Stock'}
-                </span>
-              </div>
-              <p className="mt-4 text-gray-700">{product.description}</p>
+          <div>
+            <h1 className="text-2xl font-bold mb-2">{product.name}</h1>
+            <div className="flex items-center mb-2">
+              <span className="text-yellow-500">{'★'.repeat(Math.round(product.rating))}</span>
+              <span className="text-gray-500 ml-2">({product.reviews?.length || 0} reviews)</span>
+              <Link to="#reviews" className="ml-2 text-red-600 hover:underline">Add a Review</Link>
+            </div>
+            <p className="text-2xl font-semibold text-red-600 mb-2">${product.price.toFixed(2)}</p>
+            <p className="text-gray-600 mb-4">{product.description || 'No description available'}</p>
+            <p className="text-gray-600 mb-4">
+              <span className="font-semibold">Availability: </span>
+              {product.inStock ? (
+                <span className="text-green-600">In Stock</span>
+              ) : (
+                <span className="text-red-600">Out of Stock</span>
+              )}
+            </p>
 
-              <div className="product-options mt-4">
-                <label className="mr-4">
-                  Size
-                  <select className="input-select border border-gray-300 rounded p-2 ml-2">
-                    <option value="0">X</option>
-                    {product.sizes?.map((size) => (
-                      <option key={size} value={size}>{size}</option>
-                    ))}
-                  </select>
-                </label>
-                <label>
-                  Color
-                  <select className="input-select border border-gray-300 rounded p-2 ml-2">
-                    <option value="0">Red</option>
-                    {product.colors?.map((color) => (
-                      <option key={color} value={color}>{color}</option>
-                    ))}
-                  </select>
-                </label>
-              </div>
+            <div className="mb-4">
+              <label className="block mb-1 font-semibold">Size</label>
+              <select className="w-32 p-2 border border-gray-300 rounded">
+                <option>Small</option>
+                <option>Medium</option>
+                <option>Large</option>
+              </select>
+            </div>
+            <div className="mb-4">
+              <label className="block mb-1 font-semibold">Color</label>
+              <select className="w-32 p-2 border border-gray-300 rounded">
+                <option>Red</option>
+                <option>Black</option>
+                <option>Silver</option>
+              </select>
+            </div>
+            <div className="mb-4">
+              <label className="block mb-1 font-semibold">Qty</label>
+              <input
+                type="number"
+                min="1"
+                value={quantity}
+                onChange={(e) => setQuantity(Math.max(1, parseInt(e.target.value)))}
+                className="w-16 p-2 border border-gray-300 rounded"
+                disabled={!product.inStock}
+              />
+            </div>
 
-              <div className="add-to-cart mt-4 flex items-center space-x-4">
-                <div className="qty-label">
-                  Qty
-                  <div className="input-number flex items-center border border-gray-300 rounded">
-                    <input
-                      type="number"
-                      value={quantity}
-                      onChange={(e) => setQuantity(Math.max(1, e.target.value))}
-                      className="w-16 p-2 text-center border-0"
-                      min="1"
-                    />
-                    <button
-                      onClick={() => setQuantity(quantity + 1)}
-                      className="qty-up px-2 py-1 bg-gray-200 hover:bg-gray-300"
-                    >
-                      +
-                    </button>
-                    <button
-                      onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                      className="qty-down px-2 py-1 bg-gray-200 hover:bg-gray-300"
-                    >
-                      -
-                    </button>
-                  </div>
-                </div>
-                <button
-                  onClick={handleAddToCart}
-                  className="add-to-cart-btn bg-red-600 text-white py-2 px-4 rounded hover:bg-red-700 flex items-center"
-                  disabled={!product.inStock}
-                >
-                  <i className="fa fa-shopping-cart mr-2"></i> Add to Cart
-                </button>
-              </div>
+            <button
+              onClick={handleAddToCart}
+              className={`w-full py-3 rounded text-white transition-colors ${
+                product.inStock
+                  ? 'bg-red-600 hover:bg-red-700'
+                  : 'bg-gray-400 cursor-not-allowed'
+              }`}
+              disabled={!product.inStock}
+            >
+              Add to Cart
+            </button>
 
-              <ul className="product-btns mt-4 flex space-x-4">
-                <li>
-                  <button className="text-gray-600 hover:text-red-600 flex items-center">
-                    <i className="fa fa-heart-o mr-1"></i> Add to Wishlist
-                  </button>
-                </li>
-                <li>
-                  <button className="text-gray-600 hover:text-red-600 flex items-center">
-                    <i className="fa fa-exchange mr-1"></i> Add to Compare
-                  </button>
-                </li>
-              </ul>
-
-              <ul className="product-links mt-4 flex space-x-2">
-                <li className="text-gray-600">Category:</li>
-                <li>
-                  <Link to="/products" className="hover:text-red-600">
-                    {product.category}
-                  </Link>
-                </li>
-              </ul>
-
-              <ul className="product-links mt-2 flex space-x-2">
-                <li className="text-gray-600">Share:</li>
-                <li>
-                  <a href="#" className="text-gray-600 hover:text-blue-600">
-                    <i className="fa fa-facebook"></i>
-                  </a>
-                </li>
-                <li>
-                  <a href="#" className="text-gray-600 hover:text-blue-400">
-                    <i className="fa fa-twitter"></i>
-                  </a>
-                </li>
-                <li>
-                  <a href="#" className="text-gray-600 hover:text-red-600">
-                    <i className="fa fa-google-plus"></i>
-                  </a>
-                </li>
-                <li>
-                  <a href="#" className="text-gray-600 hover:text-gray-800">
-                    <i className="fa fa-envelope"></i>
-                  </a>
-                </li>
-              </ul>
+            <div className="mt-4 flex space-x-2">
+              <span className="font-semibold">Share:</span>
+              <button className="text-gray-600 hover:text-red-600">F</button>
+              <button className="text-gray-600 hover:text-red-600">T</button>
+              <button className="text-gray-600 hover:text-red-600">G</button>
+              <button className="text-gray-600 hover:text-red-600">P</button>
             </div>
           </div>
         </div>
 
-        {/* Product Tabs */}
-        <div className="col-md-12 mt-8">
-          <div id="product-tab">
-            <ul className="tab-nav flex border-b border-gray-200">
-              <li className={activeTab === 'description' ? 'active' : ''}>
-                <button
-                  onClick={() => setActiveTab('description')}
-                  className={`py-2 px-4 font-semibold ${
-                    activeTab === 'description'
-                      ? 'text-red-600 border-b-2 border-red-600'
-                      : 'text-gray-600'
-                    }`}
-                    aria-selected={activeTab === 'description'}
-                    role="tab"
-                >
-                  Description
-                </button>
-              </li>
-              <li className={activeTab === 'details' ? 'active' : ''}>
-                <button
-                  onClick={() => setActiveTab('details')}
-                  className={`py-2 px-4 font-semibold ${
-                    activeTab === 'details'
-                      ? 'text-red-600 border-b-2 border-red-600'
-                      : 'text-gray-600'
-                  }`}
-                >
-                  Details
-                </button>
-              </li>
-              <li className={activeTab === 'reviews' ? 'active' : ''}>
-                <button
-                  onClick={() => setActiveTab('reviews')}
-                  className={`py-2 px-4 font-semibold ${
-                    activeTab === 'reviews'
-                      ? 'text-red-600 border-b-2 border-red-600'
-                      : 'text-gray-600'
-                  }`}
-                >
-                  Reviews ({product.reviews?.length || 3})
-                </button>
-              </li>
-            </ul>
+        <div className="mt-12">
+          <div className="flex border-b">
+            <button
+              className={`py-2 px-4 font-semibold ${activeTab === 'description' ? 'border-b-2 border-red-600 text-red-600' : 'text-gray-600'}`}
+              onClick={() => setActiveTab('description')}
+            >
+              Description
+            </button>
+            <button
+              className={`py-2 px-4 font-semibold ${activeTab === 'reviews' ? 'border-b-2 border-red-600 text-red-600' : 'text-gray-600'}`}
+              onClick={() => setActiveTab('reviews')}
+            >
+              Reviews ({product.reviews?.length || 0})
+            </button>
+          </div>
 
-            <div className="tab-content mt-4">
-              {activeTab === 'description' && (
-                <div id="tab1" className="tab-pane fade in active">
-                  <p>{product.description}</p>
-                </div>
-              )}
-              {activeTab === 'details' && (
-                <div id="tab2" className="tab-pane fade in">
-                  <p>{product.details || 'Additional product details go here.'}</p>
-                </div>
-              )}
-              {activeTab === 'reviews' && (
-                <div id="tab3" className="tab-pane fade in">
-                  <div className="row grid grid-cols-1 md:grid-cols-3 gap-6">
-                    {/* Rating Summary */}
-                    <div className="col-md-3">
-                      <div id="rating">
-                        <div className="rating-avg flex items-center space-x-2">
-                          <span className="text-2xl font-bold">
-                            {product.rating || 4.5}
-                          </span>
-                          <div className="rating-stars flex text-yellow-400">
-                            {[...Array(5)].map((_, i) => (
-                              <i
-                                key={i}
-                                className={`fa fa-star${i < (product.rating || 4) ? '' : '-o'}`}
-                              ></i>
-                            ))}
+          <div className="py-6">
+            {activeTab === 'description' && (
+              <p className="text-gray-600">{product.description || 'No description available'}</p>
+            )}
+            {activeTab === 'reviews' && (
+              <div>
+                <div className="flex items-center mb-6">
+                  <div className="mr-6">
+                    <p className="text-2xl font-bold">{product.rating.toFixed(1)}</p>
+                    <span className="text-yellow-500">{'★'.repeat(Math.round(product.rating))}</span>
+                    <p className="text-gray-600">({product.reviews?.length || 0} reviews)</p>
+                  </div>
+                  <div className="flex-1">
+                    {[5, 4, 3, 2, 1].map((star) => {
+                      const count = product.reviews?.filter(r => Math.round(r.rating) === star).length || 0;
+                      const percentage = product.reviews?.length ? (count / product.reviews.length) * 100 : 0;
+                      return (
+                        <div key={star} className="flex items-center mb-1">
+                          <span className="w-8">{star} ★</span>
+                          <div className="flex-1 h-2 bg-gray-200 rounded">
+                            <div className="h-2 bg-red-600 rounded" style={{ width: `${percentage}%` }}></div>
                           </div>
+                          <span className="ml-2 text-gray-600">{count}</span>
                         </div>
-                        {/* Add more rating details if needed */}
-                      </div>
-                    </div>
-
-                    {/* Reviews List */}
-                    <div className="col-md-6">
-                      <div id="reviews">
-                        <ul className="reviews space-y-4">
-                          {(product.reviews || []).map((review, index) => (
-                            <li key={index}>
-                              <div className="review-heading flex justify-between">
-                                <h5 className="name font-semibold">{review.name}</h5>
-                                <p className="date text-gray-500">{review.date}</p>
-                                <div className="review-rating flex text-yellow-400">
-                                  {[...Array(5)].map((_, i) => (
-                                    <i
-                                      key={i}
-                                      className={`fa fa-star${i < review.rating ? '' : '-o'}`}
-                                    ></i>
-                                  ))}
-                                </div>
-                              </div>
-                              <div className="review-body">
-                                <p>{review.comment}</p>
-                              </div>
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                    </div>
-
-                    {/* Review Form */}
-                    <div className="col-md-3">
-                      <div id="review-form">
-                        <form className="review-form space-y-4">
-                          <input
-                            className="input w-full p-2 border border-gray-300 rounded"
-                            type="text"
-                            placeholder="Your Name"
-                          />
-                          <input
-                            className="input w-full p-2 border border-gray-300 rounded"
-                            type="email"
-                            placeholder="Your Email"
-                          />
-                          <textarea
-                            className="input w-full p-2 border border-gray-300 rounded"
-                            placeholder="Your Review"
-                          ></textarea>
-                          <div className="input-rating flex items-center space-x-2">
-                            <span>Your Rating:</span>
-                            <div className="stars flex text-yellow-400">
-                              {[...Array(5)].map((_, i) => (
-                                <input
-                                  key={i}
-                                  type="radio"
-                                  name="rating"
-                                  value={5 - i}
-                                  id={`star${5 - i}`}
-                                  className="hidden"
-                                />
-                              ))}
-                              {[...Array(5)].map((_, i) => (
-                                <label
-                                  key={i}
-                                  htmlFor={`star${5 - i}`}
-                                  className="cursor-pointer"
-                                >
-                                  <i className="fa fa-star"></i>
-                                </label>
-                              ))}
-                            </div>
-                          </div>
-                          <button
-                            type="submit"
-                            className="primary-btn bg-red-600 text-white py-2 px-4 rounded hover:bg-red-700"
-                          >
-                            Submit
-                          </button>
-                        </form>
-                      </div>
-                    </div>
+                      );
+                    })}
                   </div>
                 </div>
-              )}
+
+                {product.reviews?.length > 0 ? (
+                  <div className="space-y-4">
+                    {product.reviews.map((review, index) => (
+                      <div key={index} className="border-b pb-4">
+                        <p className="font-semibold">{review.name}</p>
+                        <p className="text-sm text-gray-500">{new Date(review.date).toLocaleDateString()}</p>
+                        <span className="text-yellow-500">{'★'.repeat(review.rating)}</span>
+                        <p className="text-gray-600 mt-2">{review.comment}</p>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-gray-600">No reviews yet.</p>
+                )}
+
+                <div id="reviews" className="mt-8">
+                  <h3 className="text-xl font-bold mb-4">Add Your Review</h3>
+                  <form onSubmit={handleReviewSubmit} className="space-y-4">
+                    <div>
+                      <label className="block mb-1 font-semibold">Your Name</label>
+                      <input
+                        type="text"
+                        value={localStorage.getItem('userName') || ''}
+                        disabled
+                        className="w-full p-2 border border-gray-300 rounded"
+                      />
+                    </div>
+                    <div>
+                      <label className="block mb-1 font-semibold">Your Email</label>
+                      <input
+                        type="email"
+                        value={localStorage.getItem('userEmail') || ''}
+                        disabled
+                        className="w-full p-2 border border-gray-300 rounded"
+                      />
+                    </div>
+                    <div>
+                      <label className="block mb-1 font-semibold">Your Review</label>
+                      <textarea
+                        value={review.comment}
+                        onChange={(e) => setReview({ ...review, comment: e.target.value })}
+                        className="w-full p-2 border border-gray-300 rounded"
+                        rows="4"
+                        required
+                      />
+                    </div>
+                    <div>
+                      <label className="block mb-1 font-semibold">Your Rating</label>
+                      <div className="flex space-x-1">
+                        {[1, 2, 3, 4, 5].map((star) => (
+                          <button
+                            key={star}
+                            type="button"
+                            onClick={() => setReview({ ...review, rating: star })}
+                            className={`text-2xl ${star <= review.rating ? 'text-yellow-500' : 'text-gray-300'}`}
+                          >
+                            ★
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                    <button
+                      type="submit"
+                      className="bg-red-600 text-white py-2 px-4 rounded hover:bg-red-700"
+                    >
+                      Submit
+                    </button>
+                  </form>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+
+      <div className="container mx-auto px-4 py-8">
+        <h2 className="text-2xl font-bold mb-6 text-center">Related Products</h2>
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
+          {relatedProducts.map((related) => (
+            <div key={related._id} className="bg-white p-4 rounded shadow">
+              <img
+                src={related.image || 'https://via.placeholder.com/200'}
+                alt={related.name}
+                className="w-full h-40 object-cover mb-4"
+              />
+              <h3 className="text-lg font-semibold">{related.name}</h3>
+              <p className="text-red-600 font-semibold">${related.price.toFixed(2)}</p>
+              <div className="flex space-x-2 mt-2">
+                <button className="text-gray-600 hover:text-red-600">♥</button>
+                <button className="text-gray-600 hover:text-red-600">↔</button>
+                <button className="text-gray-600 hover:text-red-600">🛒</button>
+              </div>
             </div>
+          ))}
+        </div>
+      </div>
+
+      <div className="bg-gray-100 py-8">
+        <div className="container mx-auto px-4 text-center">
+          <h2 className="text-2xl font-bold mb-4">Sign Up for the Newsletter</h2>
+          <form className="flex justify-center" onSubmit={handleNewsletterSubmit}>
+            <input
+              type="email"
+              name="email"
+              placeholder="Enter Your Email"
+              value={newsletterEmail}
+              onChange={(e) => setNewsletterEmail(e.target.value)}
+              className="p-2 border border-gray-300 rounded-l w-64"
+              required
+            />
+            <button className="bg-red-600 text-white py-2 px-4 rounded-r hover:bg-red-700">
+              Subscribe
+            </button>
+          </form>
+          <div className="flex justify-center space-x-4 mt-4">
+            <button className="text-gray-600 hover:text-red-600">F</button>
+            <button className="text-gray-600 hover:text-red-600">T</button>
+            <button className="text-gray-600 hover:text-red-600">G</button>
+            <button className="text-gray-600 hover:text-red-600">P</button>
           </div>
         </div>
       </div>

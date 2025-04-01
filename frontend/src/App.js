@@ -15,33 +15,35 @@ import Checkout from './components/Checkout';
 import Profile from './components/Profile';
 import AdminDashboard from './components/AdminDashboard';
 import PrivateRoute from './components/PrivateRoute';
-
+import { CartProvider } from './context/CartContext';
 function App() {
   return (
-    <Router>
-      <Header />
-      <Navigation />
-      <div className="container mx-auto p-4">
-        <Routes>
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
-          <Route path="/" element={<Home />} />
-          <Route path="/products" element={<ProductList />} />
-          <Route path="/product/:id" element={<ProductDetails />} />
-          <Route element={<PrivateRoute />}>
-            <Route path="/cart" element={<Cart />} />
-            <Route path="/checkout" element={<Checkout />} />
-            <Route path="/success" element={<h1>Payment Successful!</h1>} />
-            <Route path="/profile" element={<Profile />} />
-          </Route>
-          <Route element={<PrivateRoute isAdminRoute />}>
-            <Route path="/admin" element={<AdminDashboard />} />
-          </Route>
-        </Routes>
-      </div>
-      <Footer />
-      <ToastContainer />
-    </Router>
+    <CartProvider>
+      <Router>
+        <Header />
+        <Navigation />
+        <div className="container mx-auto p-4">
+          <Routes>
+            <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
+            <Route path="/" element={<Home />} />
+            <Route path="/products" element={<ProductList />} />
+            <Route path="/product/:id" element={<ProductDetails />} />
+            <Route element={<PrivateRoute />}>
+              <Route path="/cart" element={<Cart />} />
+              <Route path="/checkout" element={<Checkout />} />
+              <Route path="/success" element={<h1>Payment Successful!</h1>} />
+              <Route path="/profile" element={<Profile />} />
+            </Route>
+            <Route element={<PrivateRoute isAdminRoute />}>
+              <Route path="/admin" element={<AdminDashboard />} />
+            </Route>
+          </Routes>
+        </div>
+        <Footer />
+        <ToastContainer />
+      </Router>
+    </CartProvider>
   );
 }
 

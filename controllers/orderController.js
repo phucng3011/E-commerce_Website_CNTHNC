@@ -3,36 +3,40 @@ const Order = require('../models/orderModel');
 const Cart = require('../models/cartModel');
 
 const createOrder = async (req, res) => {
-  const userId = req.user.id; // From auth middleware
+  const { billingDetails, paymentMethod, cartItems, total } = req.body;
+  const userId = req.user.id;
+
   try {
-    const cart = await Cart.findOne({ userId }).populate('items.productId');
-    if (!cart || cart.items.length === 0) {
+    // Validate cartItems
+    if (!cartItems || cartItems.length === 0) {
       return res.status(400).json({ message: 'Cart is empty' });
     }
 
-    const total = cart.items.reduce((sum, item) => sum + item.quantity * item.productId.price, 0);
-    const paymentIntent = await stripe.paymentIntents.create({
-      amount: total * 100, // Stripe uses cents
-      currency: 'usd',
-      metadata: { userId: userId.toString() },
-    });
-
+    // Create order
     const order = new Order({
       userId,
-      items: cart.items.map(item => ({
-        productId: item.productId._id,
+      items: cartItems.map(item => ({
+        productId: item.productId._id || item.productId, // Handle nested productId
         quantity: item.quantity,
-        price: item.productId.price,
+        price: item.price || item.productId.price, // Fallback if price is nested
       })),
       total,
-      paymentIntentId: paymentIntent.id,
+      paymentStatus: paymentMethod === 'stripe' ? 'pending' : 'pending', // Adjust as needed
     });
 
     await order.save();
-    await Cart.findOneAndDelete({ userId }); // Clear cart
-    res.status(201).json({ order, clientSecret: paymentIntent.client_secret });
+
+    // Clear the cart
+    await Cart.findOneAndUpdate(
+      { userId },
+      { items: [] },
+      { new: true }
+    );
+
+    res.status(201).json({ orderId: order._id, message: 'Order placed successfully' });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    console.error('Error creating order:', error);
+    res.status(500).json({ message: 'Server error' });
   }
 };
 

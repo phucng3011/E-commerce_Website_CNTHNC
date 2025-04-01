@@ -2,6 +2,7 @@ import React, { useState, useEffect, useContext } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { CartContext } from '../context/CartContext';
+import { toast } from 'react-toastify';
 
 const Checkout = () => {
   const { cart, fetchCart } = useContext(CartContext);
@@ -22,7 +23,6 @@ const Checkout = () => {
   });
   const [paymentMethod, setPaymentMethod] = useState('direct-bank-transfer');
   const [errors, setErrors] = useState({});
-  const [processing, setProcessing] = useState(false);
 
   useEffect(() => {
     if (localStorage.getItem('token')) {
@@ -52,53 +52,63 @@ const Checkout = () => {
     return Object.keys(newErrors).length === 0;
   };
 
+  const calculateTotal = () => {
+    return cart.reduce((total, item) => total + item.productId.price * item.quantity, 0);
+  };
+
   const handlePlaceOrder = async (e) => {
     e.preventDefault();
     if (!validateForm()) return;
 
-    setProcessing(true);
+    const token = localStorage.getItem('token');
+    if (!token) {
+      toast.error('Please log in to place an order.');
+      navigate('/login');
+      return;
+    }
+
+    if (cart.length === 0) {
+      toast.error('Your cart is empty.');
+      return;
+    }
+
     try {
-      const token = localStorage.getItem('token');
       const orderData = {
         billingDetails,
         paymentMethod,
-        cartItems: cart,
+        cartItems: cart.map(item => ({
+          productId: item.productId._id,
+          quantity: item.quantity,
+          price: item.productId.price,
+        })),
         total: calculateTotal(),
       };
 
-      // Send order to backend
-      const response = await axios.post(
-        'http://localhost:5000/api/orders',
-        orderData,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      console.log('Order Data Sent:', orderData);
+      const orderResponse = await axios.post('http://localhost:5000/api/orders/create', orderData, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      console.log('Order Response:', orderResponse.data);
 
-      // If using Stripe, redirect to payment gateway
-      if (paymentMethod === 'stripe') {
-        const stripeResponse = await axios.post(
-          'http://localhost:5000/api/payment/stripe',
-          { orderId: response.data.orderId, amount: calculateTotal() },
-          { headers: { Authorization: `Bearer ${token}` } }
-        );
-        window.location.href = stripeResponse.data.url; // Redirect to Stripe checkout
-      } else {
-        // Clear cart after successful order
-        await axios.delete('http://localhost:5000/api/cart', {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        fetchCart();
-        navigate('/success');
-      }
+      console.log('Attempting to clear cart...');
+      const deleteResponse = await axios.delete('http://localhost:5000/api/cart', {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      console.log('Cart Delete Response:', deleteResponse.data);
+
+      console.log('Fetching updated cart...');
+      await fetchCart();
+
+      toast.success('Order placed successfully!');
+      navigate('/success');
     } catch (error) {
-      console.error('Error placing order:', error);
-      alert('Failed to place order. Please try again.');
-    } finally {
-      setProcessing(false);
+      console.error('Error placing order:', {
+        message: error.message,
+        response: error.response?.data,
+        status: error.response?.status,
+      });
+      toast.error(error.response?.data?.message || 'Failed to place order.');
     }
-  };
-
-  const calculateTotal = () => {
-    return cart.reduce((total, item) => total + item.product.price * item.quantity, 0);
   };
 
   if (loading) return <div className="text-center py-10">Loading...</div>;
@@ -107,7 +117,6 @@ const Checkout = () => {
   return (
     <div className="section">
       <div className="container mx-auto px-4">
-        {/* Breadcrumb */}
         <div id="breadcrumb" className="mb-6">
           <ul className="breadcrumb-tree flex space-x-2 text-gray-600">
             <li><Link to="/" className="hover:text-red-600">Home</Link></li>
@@ -116,19 +125,16 @@ const Checkout = () => {
           </ul>
         </div>
 
-        <div className="row grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Billing Details */}
-          <div className="col-md-7">
-            <div className="billing-details">
-              <div className="section-title mb-4">
-                <h3 className="title text-2xl font-bold">Billing Details</h3>
-              </div>
-              <form onSubmit={handlePlaceOrder} className="space-y-4">
-                <div className="form-group">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div>
+            <div className="section-title mb-4">
+              <h3 className="text-2xl font-bold">Billing Details</h3>
+            </div>
+            <form className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
                   <input
-                    className={`input w-full p-3 border rounded ${
-                      errors.firstName ? 'border-red-500' : 'border-gray-300'
-                    }`}
+                    className={`w-full p-3 border rounded ${errors.firstName ? 'border-red-500' : 'border-gray-300'}`}
                     type="text"
                     name="firstName"
                     placeholder="First Name"
@@ -136,15 +142,11 @@ const Checkout = () => {
                     onChange={handleInputChange}
                     aria-label="First Name"
                   />
-                  {errors.firstName && (
-                    <p className="text-red-500 text-sm mt-1">{errors.firstName}</p>
-                  )}
+                  {errors.firstName && <p className="text-red-500 text-sm mt-1">{errors.firstName}</p>}
                 </div>
-                <div className="form-group">
+                <div>
                   <input
-                    className={`input w-full p-3 border rounded ${
-                      errors.lastName ? 'border-red-500' : 'border-gray-300'
-                    }`}
+                    className={`w-full p-3 border rounded ${errors.lastName ? 'border-red-500' : 'border-gray-300'}`}
                     type="text"
                     name="lastName"
                     placeholder="Last Name"
@@ -152,42 +154,32 @@ const Checkout = () => {
                     onChange={handleInputChange}
                     aria-label="Last Name"
                   />
-                  {errors.lastName && (
-                    <p className="text-red-500 text-sm mt-1">{errors.lastName}</p>
-                  )}
+                  {errors.lastName && <p className="text-red-500 text-sm mt-1">{errors.lastName}</p>}
                 </div>
-                <div className="form-group">
+              </div>
+              <input
+                className="w-full p-3 border border-gray-300 rounded"
+                type="text"
+                name="company"
+                placeholder="Company (optional)"
+                value={billingDetails.company}
+                onChange={handleInputChange}
+                aria-label="Company"
+              />
+              <input
+                className={`w-full p-3 border rounded ${errors.address ? 'border-red-500' : 'border-gray-300'}`}
+                type="text"
+                name="address"
+                placeholder="Address"
+                value={billingDetails.address}
+                onChange={handleInputChange}
+                aria-label="Address"
+              />
+              {errors.address && <p className="text-red-500 text-sm mt-1">{errors.address}</p>}
+              <div className="grid grid-cols-3 gap-4">
+                <div>
                   <input
-                    className="input w-full p-3 border border-gray-300 rounded"
-                    type="text"
-                    name="company"
-                    placeholder="Company"
-                    value={billingDetails.company}
-                    onChange={handleInputChange}
-                    aria-label="Company"
-                  />
-                </div>
-                <div className="form-group">
-                  <input
-                    className={`input w-full p-3 border rounded ${
-                      errors.address ? 'border-red-500' : 'border-gray-300'
-                    }`}
-                    type="text"
-                    name="address"
-                    placeholder="Address"
-                    value={billingDetails.address}
-                    onChange={handleInputChange}
-                    aria-label="Address"
-                  />
-                  {errors.address && (
-                    <p className="text-red-500 text-sm mt-1">{errors.address}</p>
-                  )}
-                </div>
-                <div className="form-group">
-                  <input
-                    className={`input w-full p-3 border rounded ${
-                      errors.city ? 'border-red-500' : 'border-gray-300'
-                    }`}
+                    className={`w-full p-3 border rounded ${errors.city ? 'border-red-500' : 'border-gray-300'}`}
                     type="text"
                     name="city"
                     placeholder="City"
@@ -195,15 +187,11 @@ const Checkout = () => {
                     onChange={handleInputChange}
                     aria-label="City"
                   />
-                  {errors.city && (
-                    <p className="text-red-500 text-sm mt-1">{errors.city}</p>
-                  )}
+                  {errors.city && <p className="text-red-500 text-sm mt-1">{errors.city}</p>}
                 </div>
-                <div className="form-group">
+                <div>
                   <input
-                    className={`input w-full p-3 border rounded ${
-                      errors.state ? 'border-red-500' : 'border-gray-300'
-                    }`}
+                    className={`w-full p-3 border rounded ${errors.state ? 'border-red-500' : 'border-gray-300'}`}
                     type="text"
                     name="state"
                     placeholder="State"
@@ -211,15 +199,11 @@ const Checkout = () => {
                     onChange={handleInputChange}
                     aria-label="State"
                   />
-                  {errors.state && (
-                    <p className="text-red-500 text-sm mt-1">{errors.state}</p>
-                  )}
+                  {errors.state && <p className="text-red-500 text-sm mt-1">{errors.state}</p>}
                 </div>
-                <div className="form-group">
+                <div>
                   <input
-                    className={`input w-full p-3 border rounded ${
-                      errors.zip ? 'border-red-500' : 'border-gray-300'
-                    }`}
+                    className={`w-full p-3 border rounded ${errors.zip ? 'border-red-500' : 'border-gray-300'}`}
                     type="text"
                     name="zip"
                     placeholder="ZIP Code"
@@ -227,198 +211,124 @@ const Checkout = () => {
                     onChange={handleInputChange}
                     aria-label="ZIP Code"
                   />
-                  {errors.zip && (
-                    <p className="text-red-500 text-sm mt-1">{errors.zip}</p>
-                  )}
+                  {errors.zip && <p className="text-red-500 text-sm mt-1">{errors.zip}</p>}
                 </div>
-                <div className="form-group">
-                  <input
-                    className={`input w-full p-3 border rounded ${
-                      errors.country ? 'border-red-500' : 'border-gray-300'
-                    }`}
-                    type="text"
-                    name="country"
-                    placeholder="Country"
-                    value={billingDetails.country}
-                    onChange={handleInputChange}
-                    aria-label="Country"
-                  />
-                  {errors.country && (
-                    <p className="text-red-500 text-sm mt-1">{errors.country}</p>
-                  )}
-                </div>
-                <div className="form-group">
-                  <input
-                    className={`input w-full p-3 border rounded ${
-                      errors.email ? 'border-red-500' : 'border-gray-300'
-                    }`}
-                    type="email"
-                    name="email"
-                    placeholder="Email"
-                    value={billingDetails.email}
-                    onChange={handleInputChange}
-                    aria-label="Email"
-                  />
-                  {errors.email && (
-                    <p className="text-red-500 text-sm mt-1">{errors.email}</p>
-                  )}
-                </div>
-                <div className="form-group">
-                  <input
-                    className={`input w-full p-3 border rounded ${
-                      errors.phone ? 'border-red-500' : 'border-gray-300'
-                    }`}
-                    type="tel"
-                    name="phone"
-                    placeholder="Phone"
-                    value={billingDetails.phone}
-                    onChange={handleInputChange}
-                    aria-label="Phone"
-                  />
-                  {errors.phone && (
-                    <p className="text-red-500 text-sm mt-1">{errors.phone}</p>
-                  )}
-                </div>
-                <div className="form-group">
-                  <textarea
-                    className="input w-full p-3 border border-gray-300 rounded"
-                    name="notes"
-                    placeholder="Order Notes"
-                    value={billingDetails.notes}
-                    onChange={handleInputChange}
-                    aria-label="Order Notes"
-                  ></textarea>
-                </div>
-              </form>
-            </div>
+              </div>
+              <input
+                className={`w-full p-3 border rounded ${errors.country ? 'border-red-500' : 'border-gray-300'}`}
+                type="text"
+                name="country"
+                placeholder="Country"
+                value={billingDetails.country}
+                onChange={handleInputChange}
+                aria-label="Country"
+              />
+              {errors.country && <p className="text-red-500 text-sm mt-1">{errors.country}</p>}
+              <input
+                className={`w-full p-3 border rounded ${errors.email ? 'border-red-500' : 'border-gray-300'}`}
+                type="email"
+                name="email"
+                placeholder="Email"
+                value={billingDetails.email}
+                onChange={handleInputChange}
+                aria-label="Email"
+              />
+              {errors.email && <p className="text-red-500 text-sm mt-1">{errors.email}</p>}
+              <input
+                className={`w-full p-3 border rounded ${errors.phone ? 'border-red-500' : 'border-gray-300'}`}
+                type="tel"
+                name="phone"
+                placeholder="Phone"
+                value={billingDetails.phone}
+                onChange={handleInputChange}
+                aria-label="Phone"
+              />
+              {errors.phone && <p className="text-red-500 text-sm mt-1">{errors.phone}</p>}
+              <textarea
+                className="w-full p-3 border border-gray-300 rounded"
+                name="notes"
+                placeholder="Order Notes (optional)"
+                value={billingDetails.notes}
+                onChange={handleInputChange}
+                aria-label="Order Notes"
+              />
+            </form>
           </div>
 
-          {/* Order Summary */}
-          <div className="col-md-5 order-details">
+          <div>
             <div className="section-title mb-4">
-              <h3 className="title text-2xl font-bold">Your Order</h3>
+              <h3 className="text-2xl font-bold">Your Order</h3>
             </div>
-            <div className="order-summary">
-              <div className="order-col flex justify-between font-semibold">
-                <div>Product</div>
-                <div>Total</div>
+            <div className="bg-white p-4 rounded shadow-sm">
+              <div className="flex justify-between font-semibold mb-2">
+                <span>Product</span>
+                <span>Total</span>
               </div>
               {cart.map((item) => (
-                <div key={item._id} className="order-products">
-                  <div className="order-col flex justify-between">
-                    <div>
-                      {item.product.name} x {item.quantity}
-                    </div>
-                    <div>${(item.product.price * item.quantity).toFixed(2)}</div>
-                  </div>
+                <div key={item.productId._id} className="flex justify-between mb-2">
+                  <span>{item.productId.name} x {item.quantity}</span>
+                  <span>${(item.productId.price * item.quantity).toFixed(2)}</span>
                 </div>
               ))}
-              <div className="order-col flex justify-between">
-                <div>Shipping</div>
-                <div>Free</div>
+              <div className="flex justify-between mb-2">
+                <span>Shipping</span>
+                <span>Free</span>
               </div>
-              <div className="order-col flex justify-between font-bold text-lg">
-                <div>Total</div>
-                <div>${calculateTotal().toFixed(2)}</div>
-              </div>
-            </div>
-
-            {/* Payment Methods */}
-            <div className="payment-method mt-6">
-              <div className="input-radio">
-                <input
-                  type="radio"
-                  name="payment"
-                  id="payment-1"
-                  value="direct-bank-transfer"
-                  checked={paymentMethod === 'direct-bank-transfer'}
-                  onChange={() => setPaymentMethod('direct-bank-transfer')}
-                />
-                <label htmlFor="payment-1" className="ml-2">
-                  <span></span>
-                  Direct Bank Transfer
-                </label>
-                <div
-                  className={`payment-instructions mt-2 text-gray-600 ${
-                    paymentMethod === 'direct-bank-transfer' ? 'block' : 'hidden'
-                  }`}
-                >
-                  Make your payment directly into our bank account. Please use your Order ID as the payment reference.
-                </div>
-              </div>
-              <div className="input-radio mt-4">
-                <input
-                  type="radio"
-                  name="payment"
-                  id="payment-2"
-                  value="cheque"
-                  checked={paymentMethod === 'cheque'}
-                  onChange={() => setPaymentMethod('cheque')}
-                />
-                <label htmlFor="payment-2" className="ml-2">
-                  <span></span>
-                  Cheque Payment
-                </label>
-                <div
-                  className={`payment-instructions mt-2 text-gray-600 ${
-                    paymentMethod === 'cheque' ? 'block' : 'hidden'
-                  }`}
-                >
-                  Please send a cheque to Store Name, Store Street, Store Town, Store State / County, Store Postcode.
-                </div>
-              </div>
-              <div className="input-radio mt-4">
-                <input
-                  type="radio"
-                  name="payment"
-                  id="payment-3"
-                  value="paypal"
-                  checked={paymentMethod === 'paypal'}
-                  onChange={() => setPaymentMethod('paypal')}
-                />
-                <label htmlFor="payment-3" className="ml-2">
-                  <span></span>
-                  PayPal
-                </label>
-                <div
-                  className={`payment-instructions mt-2 text-gray-600 ${
-                    paymentMethod === 'paypal' ? 'block' : 'hidden'
-                  }`}
-                >
-                  Pay via PayPal; you can pay with your credit card if you don’t have a PayPal account.
-                </div>
-              </div>
-              <div className="input-radio mt-4">
-                <input
-                  type="radio"
-                  name="payment"
-                  id="payment-4"
-                  value="stripe"
-                  checked={paymentMethod === 'stripe'}
-                  onChange={() => setPaymentMethod('stripe')}
-                />
-                <label htmlFor="payment-4" className="ml-2">
-                  <span></span>
-                  Stripe (Credit/Debit Card)
-                </label>
-                <div
-                  className={`payment-instructions mt-2 text-gray-600 ${
-                    paymentMethod === 'stripe' ? 'block' : 'hidden'
-                  }`}
-                >
-                  Pay securely using your credit or debit card via Stripe.
-                </div>
+              <div className="flex justify-between font-bold text-lg border-t pt-2">
+                <span>Total</span>
+                <span>${calculateTotal().toFixed(2)}</span>
               </div>
             </div>
 
-            {/* Place Order Button */}
-            <button
-              onClick={handlePlaceOrder}
-              className="primary-btn order-submit w-full mt-6 bg-red-600 text-white py-3 rounded hover:bg-red-700 transition-colors"
-              disabled={processing}
-            >
-              {processing ? 'Processing...' : 'Place Order'}
-            </button>
+            <div className="mt-6">
+              <h4 className="text-lg font-semibold mb-4">Payment Method</h4>
+              <div className="space-y-4">
+                <div className="flex items-center">
+                  <input
+                    type="radio"
+                    id="bank-transfer"
+                    name="payment"
+                    value="direct-bank-transfer"
+                    checked={paymentMethod === 'direct-bank-transfer'}
+                    onChange={() => setPaymentMethod('direct-bank-transfer')}
+                    className="mr-2"
+                  />
+                  <label htmlFor="bank-transfer" className="flex-1">
+                    Direct Bank Transfer
+                    {paymentMethod === 'direct-bank-transfer' && (
+                      <p className="text-gray-600 mt-2">
+                        Make your payment directly into our bank account. Please use your Order ID as the payment reference.
+                      </p>
+                    )}
+                  </label>
+                </div>
+                <div className="flex items-center">
+                  <input
+                    type="radio"
+                    id="cheque"
+                    name="payment"
+                    value="cheque"
+                    checked={paymentMethod === 'cheque'}
+                    onChange={() => setPaymentMethod('cheque')}
+                    className="mr-2"
+                  />
+                  <label htmlFor="cheque" className="flex-1">
+                    Cheque Payment
+                    {paymentMethod === 'cheque' && (
+                      <p className="text-gray-600 mt-2">
+                        Please send a cheque to Store Name, Store Street, Store Town, Store State, Store Postcode.
+                      </p>
+                    )}
+                  </label>
+                </div>
+              </div>
+              <button
+                onClick={handlePlaceOrder}
+                className="w-full mt-6 bg-red-600 text-white py-3 rounded hover:bg-red-700 transition-colors"
+              >
+                Place Order
+              </button>
+            </div>
           </div>
         </div>
       </div>
