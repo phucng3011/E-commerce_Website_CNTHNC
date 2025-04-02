@@ -76,7 +76,7 @@ const AdminDashboard = () => {
       } else {
         // Create new product
         console.log('Sending POST request with data:', formattedData);
-        await axios.post('http://localhost:5000/api/products', formattedData, {
+        await axios.post('http://localhost:5000/api/products/create', formattedData, {
           headers: { Authorization: `Bearer ${token}` },
         });
       }

@@ -1,4 +1,3 @@
-// frontend/src/components/ProductCard.js
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
@@ -7,6 +6,11 @@ import { toast } from 'react-toastify';
 const ProductCard = ({ product }) => {
   const navigate = useNavigate();
   const user = JSON.parse(localStorage.getItem('user'));
+
+  // Calculate the discounted price
+  const originalPrice = product.price;
+  const discountPercentage = product.discount || 0; // Default to 0 if discount is not provided
+  const discountedPrice = originalPrice - (originalPrice * (discountPercentage / 100));
 
   const handleAddToCart = async () => {
     if (!user) {
@@ -46,18 +50,18 @@ const ProductCard = ({ product }) => {
 
   return (
     <div className="col-md-4 col-xs-6 mb-6">
-      <div className="product bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300">
+      <div className="product bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 w-72 h-[450px] flex flex-col">
         {/* Product Image */}
-        <div className="product-img relative">
+        <div className="product-img relative flex-shrink-0">
           <img
             src={product.image || './img/product01.png'}
             alt={product.name}
             className="w-full h-48 object-cover rounded-t-lg"
           />
-          {product.discount && (
+          {discountPercentage > 0 && (
             <div className="product-label absolute top-2 left-2">
               <span className="sale bg-red-600 text-white text-xs font-bold px-2 py-1 rounded">
-                {product.discount}
+                -{discountPercentage}%
               </span>
             </div>
           )}
@@ -71,19 +75,26 @@ const ProductCard = ({ product }) => {
         </div>
 
         {/* Product Body */}
-        <div className="product-body p-4">
-          <p className="product-category text-gray-500 text-sm">{product.category || 'Category'}</p>
-          <h3 className="product-name text-lg font-semibold">
+        <div className="product-body p-4 flex-grow flex flex-col">
+          <p className="product-category text-gray-500 text-sm truncate">
+            {product.category || 'Category'}
+          </p>
+          <h3 className="product-name text-lg font-semibold truncate">
             <Link to={`/product/${product._id}`} className="text-gray-800 hover:text-red-600">
               {product.name}
             </Link>
           </h3>
           <h4 className="product-price text-red-600 font-bold">
-            ${product.price.toFixed(2)}{' '}
-            {product.oldPrice && (
-              <del className="product-old-price text-gray-400 text-sm">
-                ${product.oldPrice.toFixed(2)}
-              </del>
+            {discountPercentage > 0 ? (
+              <>
+                <span className="line-through text-gray-400">
+                  ${originalPrice.toFixed(2)}
+                </span>
+                <span className="mx-1"> </span>
+                <span>${discountedPrice.toFixed(2)}</span>
+              </>
+            ) : (
+              <span>${originalPrice.toFixed(2)}</span>
             )}
           </h4>
           <div className="product-rating flex space-x-1 text-yellow-400">
@@ -111,7 +122,7 @@ const ProductCard = ({ product }) => {
         </div>
 
         {/* Add to Cart */}
-        <div className="add-to-cart p-4 border-t border-gray-200">
+        <div className="add-to-cart p-4 border-t border-gray-200 flex-shrink-0">
           <button
             onClick={handleAddToCart}
             className="add-to-cart-btn w-full bg-red-600 text-white py-2 rounded hover:bg-red-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
