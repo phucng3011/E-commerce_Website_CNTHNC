@@ -1,4 +1,3 @@
-// frontend/src/components/AdminDashboard.js
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 
@@ -20,16 +19,22 @@ const AdminDashboard = () => {
     discount: 0,
   });
   const [editingProductId, setEditingProductId] = useState(null);
+  const [currentPage, setCurrentPage] = useState(1); // Track current page
+  const [totalPages, setTotalPages] = useState(1); // Track total pages
+  const [totalProducts, setTotalProducts] = useState(0); // Track total products
+  const limit = 9; // Number of products per page
 
   useEffect(() => {
     fetchProducts();
-  }, []);
+  }, [currentPage]); // Re-fetch products when currentPage changes
 
   const fetchProducts = async () => {
     setLoading(true);
     try {
-      const response = await axios.get('http://localhost:5000/api/products');
+      const response = await axios.get(`http://localhost:5000/api/products?page=${currentPage}&limit=${limit}`);
       setProducts(response.data.products || []);
+      setTotalPages(response.data.totalPages || 1);
+      setTotalProducts(response.data.totalProducts || 0);
       setLoading(false);
     } catch (err) {
       setError('Failed to fetch products');
@@ -71,7 +76,7 @@ const AdminDashboard = () => {
       } else {
         // Create new product
         console.log('Sending POST request with data:', formattedData);
-        await axios.post('http://localhost:5000/api/products/create', formattedData, {
+        await axios.post('http://localhost:5000/api/products', formattedData, {
           headers: { Authorization: `Bearer ${token}` },
         });
       }
@@ -88,6 +93,7 @@ const AdminDashboard = () => {
         isHotDeal: false,
         discount: 0,
       });
+      setCurrentPage(1); // Reset to page 1 after adding/updating a product
       fetchProducts();
     } catch (err) {
       console.error('Error saving product:', err.response?.data || err.message);
@@ -123,9 +129,16 @@ const AdminDashboard = () => {
       await axios.delete(`http://localhost:5000/api/products/${id}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
+      setCurrentPage(1); // Reset to page 1 after deleting a product
       fetchProducts();
     } catch (err) {
       setError('Failed to delete product');
+    }
+  };
+
+  const handlePageChange = (page) => {
+    if (page >= 1 && page <= totalPages) {
+      setCurrentPage(page);
     }
   };
 
@@ -336,37 +349,77 @@ const AdminDashboard = () => {
         </div>
 
         {/* Product List */}
-        <h3 className="text-xl font-bold mb-4">Products</h3>
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-          {products.map((product) => (
-            <div key={product._id} className="border p-4 rounded">
-              <h4 className="text-lg font-bold">{product.name}</h4>
-              <p>Price: ${product.price}</p>
-              <p>Category: {product.category || 'N/A'}</p>
-              <p>Brand: {product.brand || 'N/A'}</p>
-              <p>In Stock: {product.inStock ? 'Yes' : 'No'}</p>
-              <p>Rating: {product.rating}</p>
-              <p>Sales Count: {product.salesCount || 0}</p>
-              <p>Hot Deal: {product.isHotDeal ? 'Yes' : 'No'}</p>
-              <p>Discount: {product.discount || 0}%</p>
-              <p>Created At: {new Date(product.createdAt).toLocaleDateString()}</p>
-              <div className="mt-2 flex space-x-2">
-                <button
-                  onClick={() => handleEdit(product)}
-                  className="bg-blue-600 text-white py-1 px-3 rounded hover:bg-blue-700"
-                >
-                  Edit
-                </button>
-                <button
-                  onClick={() => handleDelete(product._id)}
-                  className="bg-red-600 text-white py-1 px-3 rounded hover:bg-red-700"
-                >
-                  Delete
-                </button>
-              </div>
+        <h3 className="text-xl font-bold mb-4">Products (Total: {totalProducts})</h3>
+        {products.length > 0 ? (
+          <>
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+              {products.map((product) => (
+                <div key={product._id} className="border p-4 rounded">
+                  <h4 className="text-lg font-bold">{product.name}</h4>
+                  <p>Price: ${product.price}</p>
+                  <p>Category: {product.category || 'N/A'}</p>
+                  <p>Brand: {product.brand || 'N/A'}</p>
+                  <p>In Stock: {product.inStock ? 'Yes' : 'No'}</p>
+                  <p>Rating: {product.rating}</p>
+                  <p>Sales Count: {product.salesCount || 0}</p>
+                  <p>Hot Deal: {product.isHotDeal ? 'Yes' : 'No'}</p>
+                  <p>Discount: {product.discount || 0}%</p>
+                  <p>Created At: {new Date(product.createdAt).toLocaleDateString()}</p>
+                  <div className="mt-2 flex space-x-2">
+                    <button
+                      onClick={() => handleEdit(product)}
+                      className="bg-blue-600 text-white py-1 px-3 rounded hover:bg-blue-700"
+                    >
+                      Edit
+                    </button>
+                    <button
+                      onClick={() => handleDelete(product._id)}
+                      className="bg-red-600 text-white py-1 px-3 rounded hover:bg-red-700"
+                    >
+                      Delete
+                    </button>
+                  </div>
+                </div>
+              ))}
             </div>
-          ))}
-        </div>
+
+            {/* Pagination Controls */}
+            <div className="mt-6 flex justify-center items-center space-x-2">
+              <button
+                onClick={() => handlePageChange(currentPage - 1)}
+                disabled={currentPage === 1}
+                className="px-4 py-2 bg-gray-300 text-gray-700 rounded hover:bg-gray-400 disabled:opacity-50"
+              >
+                Previous
+              </button>
+              {[...Array(totalPages)].map((_, index) => (
+                <button
+                  key={index + 1}
+                  onClick={() => handlePageChange(index + 1)}
+                  className={`px-4 py-2 rounded ${
+                    currentPage === index + 1
+                      ? 'bg-red-600 text-white'
+                      : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                  }`}
+                >
+                  {index + 1}
+                </button>
+              ))}
+              <button
+                onClick={() => handlePageChange(currentPage + 1)}
+                disabled={currentPage === totalPages}
+                className="px-4 py-2 bg-gray-300 text-gray-700 rounded hover:bg-gray-400 disabled:opacity-50"
+              >
+                Next
+              </button>
+            </div>
+            <p className="text-center mt-2">
+              Page {currentPage} of {totalPages}
+            </p>
+          </>
+        ) : (
+          <p className="text-center text-gray-600">No products available.</p>
+        )}
       </div>
     </div>
   );
