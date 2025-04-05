@@ -1,13 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import ProductCard from './ProductCard';
-
+import { useNavigate } from 'react-router-dom';
 
 const Home = () => {
   const [newProducts, setNewProducts] = useState([]);
   const [topSellingProducts, setTopSellingProducts] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [error, setError] =useState(null);
+  const [searchQuery, setSearchQuery] = useState(''); // State for search query
+  const navigate = useNavigate(); // For navigation
 
   useEffect(() => {
     const fetchData = async () => {
@@ -28,11 +30,37 @@ const Home = () => {
     fetchData();
   }, []);
 
+  const handleSearchSubmit = (e) => {
+    e.preventDefault();
+    if (searchQuery.trim()) {
+      navigate(`/products?search=${encodeURIComponent(searchQuery)}`);
+    }
+  };
+
   if (loading) return <div className="text-center py-10">Loading...</div>;
   if (error) return <div className="text-center py-10 text-red-500">{error}</div>;
 
   return (
     <div className="min-h-screen bg-gray-100">
+      {/* Search Bar */}
+      <div className="container mx-auto px-4 py-4">
+        <form onSubmit={handleSearchSubmit} className="flex items-center space-x-2">
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Search for products..."
+            className="w-full p-3 border border-gray-300 rounded"
+          />
+          <button
+            type="submit"
+            className="bg-red-600 text-white py-2 px-4 rounded hover:bg-red-700"
+          >
+            Search
+          </button>
+        </form>
+      </div>
+
       {/* New Products Section */}
       <div className="container mx-auto px-4 py-8">
         <h2 className="text-2xl font-bold mb-6 text-center">New Products</h2>
