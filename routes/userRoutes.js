@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { registerUser, loginUser, getMe, getUserOrders, updateUserProfile, updateUserPassword } = require('../controllers/userController');
+const { registerUser, loginUser, getMe, getUserOrders, updateUserProfile, updateUserPassword, deleteUser } = require('../controllers/userController');
 const authMiddleware = require('../middleware/auth');
 const User = require('../models/userModel');
 
@@ -17,6 +17,7 @@ router.post('/register', registerUser);
 router.post('/login', loginUser);
 router.get('/me', authMiddleware, getMe);
 router.get('/orders', authMiddleware, getUserOrders);
+router.delete('/:id', authMiddleware, adminMiddleware, deleteUser);
 
 // Admin-only routes (already exists in your code)
 router.get('/', authMiddleware, adminMiddleware, async (req, res) => {

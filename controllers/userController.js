@@ -45,12 +45,11 @@ const loginUser = async (req, res) => {
   const { email, password } = req.body;
 
   try {
-    // Validate input
     if (!email || !password) {
       return res.status(400).json({ message: 'Email and password are required' });
     }
 
-    const user = await User.findOne({ email });
+    const user = await User.findOne({ email, deleted: { $ne: true } }); // Exclude deleted users
     if (!user) {
       return res.status(401).json({ message: 'Invalid email or password' });
     }
@@ -200,6 +199,36 @@ const updateUserProfile = async (req, res) => {
   }
 };
 
+const deleteUser = async (req, res) => {
+  try {
+    const userId = req.params.id;
+
+    if (userId === req.user._id.toString()) {
+      return res.status(400).json({ message: 'Cannot delete your own account' });
+    }
+
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    await User.findByIdAndDelete(userId);
+    console.log('User deleted:', userId);
+
+    // Reassign orders to a placeholder "deleted user" account
+    const placeholderUser = await User.findOne({ email: 'deleted@placeholder.com' });
+    if (placeholderUser) {
+      await Order.updateMany({ userId: userId }, { userId: placeholderUser._id });
+      console.log('Reassigned user orders to placeholder:', placeholderUser._id);
+    }
+
+    res.json({ message: 'User deleted successfully' });
+  } catch (err) {
+    console.error('Error in deleteUser:', err.message);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
 module.exports = {
   registerUser,
   loginUser,
@@ -207,4 +236,5 @@ module.exports = {
   getUserOrders,
   updateUserProfile,
   updateUserPassword,
+  deleteUser
 };
