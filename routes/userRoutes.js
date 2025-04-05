@@ -30,6 +30,11 @@ router.put('/:id/admin', authMiddleware, adminMiddleware, async (req, res) => {
     return res.status(400).json({ message: 'isAdmin must be a boolean' });
   }
 
+  // Prevent admins from modifying their own admin status
+  if (req.user._id.toString() === req.params.id) {
+    return res.status(403).json({ message: 'Cannot modify your own admin status' });
+  }
+
   try {
     const user = await User.findById(req.params.id);
     if (!user) {
@@ -46,6 +51,11 @@ router.put('/:id/admin', authMiddleware, adminMiddleware, async (req, res) => {
 
 // Delete user (Admin only)
 router.delete('/:id', authMiddleware, adminMiddleware, async (req, res) => {
+  // Prevent admins from deleting themselves
+  if (req.user._id.toString() === req.params.id) {
+    return res.status(403).json({ message: 'Cannot delete your own account' });
+  }
+
   try {
     const user = await User.findById(req.params.id);
     if (!user) {

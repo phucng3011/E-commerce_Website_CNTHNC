@@ -4,6 +4,7 @@ import axios from 'axios';
 const AdminDashboard = () => {
   const [products, setProducts] = useState([]);
   const [users, setUsers] = useState([]);
+  const [currentUserId, setCurrentUserId] = useState(null); // Store the authenticated user's ID
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [formData, setFormData] = useState({
@@ -26,6 +27,21 @@ const AdminDashboard = () => {
   const [activeTab, setActiveTab] = useState('products');
 
   useEffect(() => {
+    // Fetch the authenticated user's ID when the component mounts
+    const fetchCurrentUser = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        const response = await axios.get('http://localhost:5000/api/users/me', {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        setCurrentUserId(response.data._id);
+      } catch (err) {
+        setError('Failed to fetch current user');
+      }
+    };
+
+    fetchCurrentUser();
+
     if (activeTab === 'products') {
       fetchProducts();
     } else {
@@ -543,41 +559,50 @@ const AdminDashboard = () => {
             <h3 className="text-xl font-bold mb-4">Users (Total: {users.length})</h3>
             {users.length > 0 ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-                {users.map((user) => (
-                  <div key={user._id} className="border p-4 rounded shadow bg-white">
-                    <h4 className="text-lg font-bold truncate">{user.name}</h4>
-                    <p className="text-sm truncate">
-                      <span className="font-semibold">Email:</span> {user.email}
-                    </p>
-                    <p className="text-sm">
-                      <span className="font-semibold">Admin:</span> {user.isAdmin ? 'Yes' : 'No'}
-                    </p>
-                    <p className="text-sm">
-                      <span className="font-semibold">Created At:</span>{' '}
-                      {new Date(user.createdAt).toLocaleDateString()}
-                    </p>
-                    <div className="mt-3 flex space-x-2">
-                      {/* Admin Status Toggle */}
-                      <button
-                        onClick={() => handleAdminStatusChange(user._id, user.isAdmin)}
-                        className={`py-1 px-3 rounded text-white ${
-                          user.isAdmin
-                            ? 'bg-yellow-600 hover:bg-yellow-700'
-                            : 'bg-green-600 hover:bg-green-700'
-                        }`}
-                      >
-                        {user.isAdmin ? 'Demote to User' : 'Promote to Admin'}
-                      </button>
-                      {/* Delete User */}
-                      <button
-                        onClick={() => handleDeleteUser(user._id)}
-                        className="bg-red-600 text-white py-1 px-3 rounded hover:bg-red-700"
-                      >
-                        Delete
-                      </button>
+                {users.map((user) => {
+                  const isCurrentUser = user._id === currentUserId; // Check if this is the authenticated user
+                  return (
+                    <div key={user._id} className="border p-4 rounded shadow bg-white">
+                      <h4 className="text-lg font-bold truncate">{user.name}</h4>
+                      <p className="text-sm truncate">
+                        <span className="font-semibold">Email:</span> {user.email}
+                      </p>
+                      <p className="text-sm">
+                        <span className="font-semibold">Admin:</span> {user.isAdmin ? 'Yes' : 'No'}
+                      </p>
+                      <p className="text-sm">
+                        <span className="font-semibold">Created At:</span>{' '}
+                        {new Date(user.createdAt).toLocaleDateString()}
+                      </p>
+                      <div className="mt-3 flex space-x-2">
+                        {/* Admin Status Toggle */}
+                        <button
+                          onClick={() => handleAdminStatusChange(user._id, user.isAdmin)}
+                          className={`py-1 px-3 rounded text-white ${
+                            user.isAdmin
+                              ? 'bg-yellow-600 hover:bg-yellow-700'
+                              : 'bg-green-600 hover:bg-green-700'
+                          } ${isCurrentUser ? 'opacity-50 cursor-not-allowed' : ''}`}
+                          disabled={isCurrentUser}
+                          title={isCurrentUser ? 'Cannot modify your own admin status' : ''}
+                        >
+                          {user.isAdmin ? 'Demote to User' : 'Promote to Admin'}
+                        </button>
+                        {/* Delete User */}
+                        <button
+                          onClick={() => handleDeleteUser(user._id)}
+                          className={`bg-red-600 text-white py-1 px-3 rounded hover:bg-red-700 ${
+                            isCurrentUser ? 'opacity-50 cursor-not-allowed' : ''
+                          }`}
+                          disabled={isCurrentUser}
+                          title={isCurrentUser ? 'Cannot delete your own account' : ''}
+                        >
+                          Delete
+                        </button>
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             ) : (
               <p className="text-center text-gray-600">No users available.</p>
