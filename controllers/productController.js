@@ -30,7 +30,6 @@ const getProducts = async (req, res) => {
       topSelling = false,
     } = req.query;
 
-    // Validate query parameters
     const validationErrors = validateQueryParams(page, limit, minPrice, maxPrice);
     if (validationErrors.length > 0) {
       return res.status(400).json({ message: validationErrors.join(', ') });
@@ -38,61 +37,52 @@ const getProducts = async (req, res) => {
 
     const query = {};
 
-    // Search by name (case-insensitive)
     if (search) {
       query.name = { $regex: search, $options: 'i' };
     }
 
-    // Filter by category
     if (category) {
       query.category = category;
     }
 
-    // Filter by price range
     if (minPrice || maxPrice) {
       query.price = {};
       if (minPrice) query.price.$gte = Number(minPrice);
       if (maxPrice) query.price.$lte = Number(maxPrice);
     }
 
-    // Filter by brand
     if (brand) {
       query.brand = brand;
     }
 
-    // Filter for new products (last 30 days)
     if (isNew === 'true') {
       query.createdAt = { $gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000) };
     }
 
-    // Filter for top-selling products (based on salesCount)
     if (topSelling === 'true') {
       query.salesCount = { $exists: true };
     }
 
-    // Sorting
     const sortOptions = {};
     if (sort) {
       const sortField = sort.startsWith('-') ? sort.slice(1) : sort;
       const sortOrder = sort.startsWith('-') ? -1 : 1;
       sortOptions[sortField] = sortOrder;
     } else if (topSelling === 'true') {
-      sortOptions.salesCount = -1; // Sort by salesCount descending for top-selling
+      sortOptions.salesCount = -1;
     } else if (isNew === 'true') {
-      sortOptions.createdAt = -1; // Sort by createdAt descending for new products
+      sortOptions.createdAt = -1;
     }
 
-    // Pagination
     const pageNum = parseInt(page);
     const limitNum = parseInt(limit);
     const skip = (pageNum - 1) * limitNum;
 
-    // Fetch products
     const products = await Product.find(query)
       .sort(sortOptions)
       .skip(skip)
       .limit(limitNum)
-      .lean(); // Use lean for better performance
+      .lean();
 
     const totalProducts = await Product.countDocuments(query);
 
@@ -110,7 +100,9 @@ const getProducts = async (req, res) => {
 
 const getProductById = async (req, res) => {
   try {
-    const product = await Product.findById(req.params.id).lean();
+    const product = await Product.findById(req.params.id)
+      .populate('reviews.userId', 'name')
+      .lean();
     if (!product) {
       return res.status(404).json({ message: 'Product not found' });
     }
@@ -166,7 +158,6 @@ const addReview = async (req, res) => {
   const productId = req.params.id;
   const userId = req.user._id;
 
-  // Validate input
   if (!rating || rating < 1 || rating > 5) {
     return res.status(400).json({ message: 'Rating must be between 1 and 5' });
   }
@@ -180,8 +171,13 @@ const addReview = async (req, res) => {
       return res.status(404).json({ message: 'Product not found' });
     }
 
-    // Check if the user has already reviewed this product
-    const existingReview = product.reviews.find(review => review.userId.toString() === userId.toString());
+    if (!product.reviews) {
+      product.reviews = [];
+    }
+
+    const existingReview = product.reviews.find(
+      (review) => review.userId.toString() === userId.toString()
+    );
     if (existingReview) {
       return res.status(400).json({ message: 'You have already reviewed this product' });
     }
@@ -196,13 +192,16 @@ const addReview = async (req, res) => {
 
     product.reviews.push(review);
 
-    // Recalculate the average rating
-    product.rating =
-      product.reviews.reduce((acc, item) => acc + item.rating, 0) / product.reviews.length;
+    const totalRating = product.reviews.reduce((acc, item) => acc + item.rating, 0);
+    product.rating = product.reviews.length > 0 ? totalRating / product.reviews.length : 0;
 
     await product.save();
-    res.status(201).json({ message: 'Review added successfully', product });
+    const updatedProduct = await Product.findById(productId)
+      .populate('reviews.userId', 'name')
+      .lean();
+    res.status(201).json({ message: 'Review added successfully', product: updatedProduct });
   } catch (err) {
+    console.error('Error in addReview:', err.message);
     res.status(500).json({ message: 'Server error' });
   }
 };

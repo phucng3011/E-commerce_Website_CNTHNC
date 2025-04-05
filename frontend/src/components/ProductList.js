@@ -1,4 +1,3 @@
-// frontend/src/components/ProductList.js
 import React, { useState, useEffect } from 'react';
 import { useLocation, useSearchParams, Link } from 'react-router-dom';
 import axios from 'axios';
@@ -26,7 +25,6 @@ const ProductList = () => {
   const location = useLocation();
   const [searchParams, setSearchParams] = useSearchParams();
 
-  // Initialize filters and sort from URL query parameters and fetch products
   useEffect(() => {
     const category = searchParams.get('category') || '';
     const minPrice = searchParams.get('minPrice') || '';
@@ -56,7 +54,6 @@ const ProductList = () => {
     });
   }, [location.search]);
 
-  // Fetch products based on filters, sort, and pagination
   const fetchProducts = async (params) => {
     setLoading(true);
     setError('');
@@ -87,7 +84,6 @@ const ProductList = () => {
     }
   };
 
-  // Handle search form submission
   const handleSearchSubmit = (e) => {
     e.preventDefault();
     const newFilters = { ...filters };
@@ -106,13 +102,11 @@ const ProductList = () => {
     fetchProducts({ ...newFilters, sort, page: 1 });
   };
 
-  // Handle price filter form submission with validation
   const handlePriceFilterSubmit = (e) => {
     e.preventDefault();
     const min = Number(filters.minPrice);
     const max = Number(filters.maxPrice);
 
-    // Validate minPrice and maxPrice
     if (min && max && min > max) {
       toast.error('Minimum price must be less than or equal to maximum price.');
       return;
@@ -134,7 +128,6 @@ const ProductList = () => {
     fetchProducts({ ...newFilters, sort, page: 1 });
   };
 
-  // Handle category and brand filter changes (immediate update)
   const handleFilterChange = (e) => {
     const { name, value } = e.target;
     const newFilters = { ...filters, [name]: value };
@@ -153,7 +146,6 @@ const ProductList = () => {
     fetchProducts({ ...newFilters, sort, page: 1 });
   };
 
-  // Handle sort change (immediate update)
   const handleSortChange = (e) => {
     const newSort = e.target.value;
     setSort(newSort);
@@ -171,7 +163,6 @@ const ProductList = () => {
     fetchProducts({ ...filters, sort: newSort, page: 1 });
   };
 
-  // Handle clear filters
   const handleClearFilters = () => {
     const newFilters = {
       category: '',
@@ -181,7 +172,7 @@ const ProductList = () => {
       search: '',
     };
     setFilters(newFilters);
-    setSort(''); // Optionally clear sort as well
+    setSort('');
     setPagination({ ...pagination, currentPage: 1 });
 
     const newParams = new URLSearchParams();
@@ -217,10 +208,8 @@ const ProductList = () => {
     <div className="section">
       <div className="container mx-auto px-4">
         <div className="row flex flex-col lg:flex-row gap-6">
-          {/* Filters Sidebar */}
           <div className="col-md-3 order-2 lg:order-1">
             <div id="aside" className="space-y-6">
-              {/* Search Bar */}
               <div className="aside">
                 <h3 className="aside-title text-xl font-bold mb-4">Search</h3>
                 <form onSubmit={handleSearchSubmit} className="search-filter flex items-center space-x-2">
@@ -242,7 +231,6 @@ const ProductList = () => {
                 </form>
               </div>
 
-              {/* Category Filter */}
               <div className="aside">
                 <h3 className="aside-title text-xl font-bold mb-4">Categories</h3>
                 <div className="checkbox-filter">
@@ -263,7 +251,6 @@ const ProductList = () => {
                 </div>
               </div>
 
-              {/* Price Filter */}
               <div className="aside">
                 <h3 className="aside-title text-xl font-bold mb-4">Price</h3>
                 <form onSubmit={handlePriceFilterSubmit} className="price-filter space-y-2">
@@ -298,7 +285,6 @@ const ProductList = () => {
                 </form>
               </div>
 
-              {/* Brand Filter */}
               <div className="aside">
                 <h3 className="aside-title text-xl font-bold mb-4">Brand</h3>
                 <div className="checkbox-filter">
@@ -319,7 +305,6 @@ const ProductList = () => {
                 </div>
               </div>
 
-              {/* Clear Filters Button */}
               <div className="aside">
                 <button
                   onClick={handleClearFilters}
@@ -331,10 +316,8 @@ const ProductList = () => {
             </div>
           </div>
 
-          {/* Product Grid */}
           <div className="col-md-9 order-1 lg:order-2">
             <div className="row">
-              {/* Store Top Filter with Sorting */}
               <div className="store-filter clearfix flex justify-between mb-4">
                 <div className="store-sort">
                   <label className="mr-2">
@@ -358,7 +341,6 @@ const ProductList = () => {
                 </div>
               </div>
 
-              {/* Product Grid */}
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
                 {products.length === 0 ? (
                   <div className="col-span-3 text-center py-10">
@@ -374,13 +356,14 @@ const ProductList = () => {
                     )}
                   </div>
                 ) : (
-                  products.map((product) => (
-                    <ProductCard key={product._id} product={product} />
-                  ))
+                  products
+                    .filter((product) => product && product._id) // Ensure product exists
+                    .map((product) => (
+                      <ProductCard key={product._id} product={product} />
+                    ))
                 )}
               </div>
 
-              {/* Pagination */}
               <div className="store-pagination mt-6 flex justify-between items-center">
                 <div className="store-pages flex space-x-2">
                   <button

@@ -1,12 +1,24 @@
 // frontend/src/components/ProductDetails.js
 import React, { useState, useEffect, useContext } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { CartContext } from '../context/CartContext';
 import { toast } from 'react-toastify';
+import ProductCard from './ProductCard';
+import {
+  FacebookShareButton,
+  TwitterShareButton,
+  WhatsappShareButton,
+  EmailShareButton,
+  FacebookIcon,
+  TwitterIcon,
+  WhatsappIcon,
+  EmailIcon,
+} from 'react-share'; // Import social sharing components
 
 const ProductDetails = () => {
   const { id } = useParams();
+  const navigate = useNavigate();
   const { addToCart } = useContext(CartContext);
   const [product, setProduct] = useState(null);
   const [relatedProducts, setRelatedProducts] = useState([]);
@@ -16,41 +28,38 @@ const ProductDetails = () => {
   const [selectedImage, setSelectedImage] = useState('');
   const [activeTab, setActiveTab] = useState('description');
   const [review, setReview] = useState({ rating: 5, comment: '' });
-  const [newsletterEmail, setNewsletterEmail] = useState('');
 
   useEffect(() => {
     const fetchProduct = async () => {
       try {
         const response = await axios.get(`http://localhost:5000/api/products/${id}`);
-        setProduct(response.data);
-        setSelectedImage(response.data.images && response.data.images.length > 0 ? response.data.images[0] : 'https://via.placeholder.com/400');
+        const fetchedProduct = response.data;
+        setProduct(fetchedProduct);
+        setSelectedImage(
+          fetchedProduct.images && fetchedProduct.images.length > 0
+            ? fetchedProduct.images[0]
+            : 'https://via.placeholder.com/400'
+        );
 
-        if (response.data.category) {
-          console.log('Fetching related products for category:', response.data.category);
+        if (fetchedProduct.category) {
           const relatedResponse = await axios.get(
-            `http://localhost:5000/api/products?category=${response.data.category}&limit=4`
+            `http://localhost:5000/api/products?category=${fetchedProduct.category}&limit=4`
           );
-          console.log('Related Response:', relatedResponse);
-          console.log('Related Response Data:', relatedResponse.data);
-          const relatedData = Array.isArray(relatedResponse.data) ? relatedResponse.data : [];
-          setRelatedProducts(relatedData.filter(p => p._id !== id));
+          const relatedData = Array.isArray(relatedResponse.data.products)
+            ? relatedResponse.data.products
+            : [];
+          setRelatedProducts(relatedData.filter((p) => p._id !== id));
         }
+
+        // Scroll to the top of the page when the product changes
+        window.scrollTo({ top: 0, behavior: 'smooth' });
       } catch (err) {
-        console.error('Error fetching product:', {
-          message: err.message,
-          response: err.response?.data,
-          status: err.response?.status,
-        });
         setError(err.response?.data?.message || 'Failed to load product');
       } finally {
         setLoading(false);
       }
     };
     fetchProduct();
-
-    return () => {
-      setNewsletterEmail('');
-    };
   }, [id]);
 
   const handleAddToCart = async () => {
@@ -85,30 +94,46 @@ const ProductDetails = () => {
     }
   };
 
-  const handleNewsletterSubmit = async (e) => {
-    e.preventDefault();
-    try {
-      await axios.post('http://localhost:5000/api/newsletter', { email: newsletterEmail });
-      toast.success('Subscribed successfully!');
-      setNewsletterEmail('');
-    } catch (err) {
-      toast.error(err.response?.data?.message || 'Failed to subscribe');
-    }
+  const handleNavigateToProduct = (productId) => {
+    navigate(`/product/${productId}`);
+    window.scrollTo({ top: 0, behavior: 'smooth' }); // Scroll to the top when navigating
   };
 
   if (loading) return <div className="text-center py-10">Loading...</div>;
   if (error) return <div className="text-center py-10 text-red-500">{error}</div>;
   if (!product) return <div className="text-center py-10">Product not found</div>;
 
+  const productUrl = `${window.location.origin}/product/${id}`; // URL of the product page
+  const productTitle = product?.name || 'Product';
+
+  const productRating = product.rating || 0;
+  const roundedRating = Math.round(productRating);
+  const reviewCount = product.reviews ? product.reviews.length : 0;
+
   return (
     <div className="min-h-screen bg-gray-100">
       <div className="container mx-auto px-4 py-4">
         <ul className="flex space-x-2 text-gray-600 text-sm">
-          <li><Link to="/" className="hover:text-red-600">Home</Link></li>
+          <li>
+            <Link to="/" className="hover:text-red-600">
+              Home
+            </Link>
+          </li>
           <li>/</li>
-          <li><Link to="/products" className="hover:text-red-600">All Categories</Link></li>
+          <li>
+            <Link to="/products" className="hover:text-red-600">
+              All Categories
+            </Link>
+          </li>
           <li>/</li>
-          <li><Link to={`/products?category=${product.category}`} className="hover:text-red-600">{product.category}</Link></li>
+          <li>
+            <Link
+              to={`/products?category=${product.category}`}
+              className="hover:text-red-600"
+            >
+              {product.category}
+            </Link>
+          </li>
           <li>/</li>
           <li className="text-gray-800">{product.name}</li>
         </ul>
@@ -118,15 +143,25 @@ const ProductDetails = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           <div className="flex">
             <div className="flex flex-col space-y-4 mr-4">
-              {product.images && product.images.map((img, index) => (
+              {product.images && product.images.length > 0 ? (
+                product.images.map((img, index) => (
+                  <img
+                    key={index}
+                    src={img || 'https://via.placeholder.com/100'}
+                    alt={`Thumbnail ${index + 1}`}
+                    className={`w-20 h-20 object-cover cursor-pointer border-2 ${
+                      selectedImage === img ? 'border-red-600' : 'border-gray-300'
+                    }`}
+                    onClick={() => setSelectedImage(img)}
+                  />
+                ))
+              ) : (
                 <img
-                  key={index}
-                  src={img || 'https://via.placeholder.com/100'}
-                  alt={`Thumbnail ${index + 1}`}
-                  className={`w-20 h-20 object-cover cursor-pointer border-2 ${selectedImage === img ? 'border-red-600' : 'border-gray-300'}`}
-                  onClick={() => setSelectedImage(img)}
+                  src="https://via.placeholder.com/100"
+                  alt="No image available"
+                  className="w-20 h-20 object-cover border-2 border-gray-300"
                 />
-              ))}
+              )}
             </div>
             <div className="flex-1">
               <img
@@ -140,11 +175,23 @@ const ProductDetails = () => {
           <div>
             <h1 className="text-2xl font-bold mb-2">{product.name}</h1>
             <div className="flex items-center mb-2">
-              <span className="text-yellow-500">{'★'.repeat(Math.round(product.rating))}</span>
-              <span className="text-gray-500 ml-2">({product.reviews?.length || 0} reviews)</span>
+              <span className="text-yellow-500">
+                {'★'.repeat(roundedRating)}
+                {'☆'.repeat(5 - roundedRating)}
+              </span>
+              <span className="text-gray-500 ml-2">({reviewCount} reviews)</span>
             </div>
-            <p className="text-2xl font-semibold text-red-600 mb-2">{product.price.toLocaleString()} ₫</p>
-            <p className="text-gray-600 mb-4">{product.description || 'No description available'}</p>
+            <p className="text-2xl font-semibold text-red-600 mb-2">
+              {product.price ? product.price.toLocaleString() : '0'} ₫
+              {product.discount > 0 && (
+                <span className="text-sm text-green-600 ml-2">
+                  ({product.discount}% off)
+                </span>
+              )}
+            </p>
+            <p className="text-gray-600 mb-4">
+              {product.description || 'No description available'}
+            </p>
             <p className="text-gray-600 mb-4">
               <span className="font-semibold">Availability: </span>
               {product.inStock ? (
@@ -176,7 +223,7 @@ const ProductDetails = () => {
                 type="number"
                 min="1"
                 value={quantity}
-                onChange={(e) => setQuantity(Math.max(1, parseInt(e.target.value)))}
+                onChange={(e) => setQuantity(Math.max(1, parseInt(e.target.value) || 1))}
                 className="w-16 p-2 border border-gray-300 rounded"
                 disabled={!product.inStock}
               />
@@ -194,12 +241,20 @@ const ProductDetails = () => {
               Add to Cart
             </button>
 
-            <div className="mt-4 flex space-x-2">
-              <span className="font-semibold">Share:</span>
-              <button className="text-gray-600 hover:text-red-600">F</button>
-              <button className="text-gray-600 hover:text-red-600">T</button>
-              <button className="text-gray-600 hover:text-red-600">G</button>
-              <button className="text-gray-600 hover:text-red-600">P</button>
+            {/* Social Sharing Buttons */}
+            <div className="mt-4 flex space-x-4">
+              <FacebookShareButton url={productUrl} quote={productTitle}>
+                <FacebookIcon size={32} round />
+              </FacebookShareButton>
+              <TwitterShareButton url={productUrl} title={productTitle}>
+                <TwitterIcon size={32} round />
+              </TwitterShareButton>
+              <WhatsappShareButton url={productUrl} title={productTitle}>
+                <WhatsappIcon size={32} round />
+              </WhatsappShareButton>
+              <EmailShareButton url={productUrl} subject={productTitle} body="Check out this product!">
+                <EmailIcon size={32} round />
+              </EmailShareButton>
             </div>
           </div>
         </div>
@@ -207,40 +262,63 @@ const ProductDetails = () => {
         <div className="mt-12">
           <div className="flex border-b">
             <button
-              className={`py-2 px-4 font-semibold ${activeTab === 'description' ? 'border-b-2 border-red-600 text-red-600' : 'text-gray-600'}`}
+              className={`py-2 px-4 font-semibold ${
+                activeTab === 'description'
+                  ? 'border-b-2 border-red-600 text-red-600'
+                  : 'text-gray-600'
+              }`}
               onClick={() => setActiveTab('description')}
             >
               Description
             </button>
             <button
-              className={`py-2 px-4 font-semibold ${activeTab === 'reviews' ? 'border-b-2 border-red-600 text-red-600' : 'text-gray-600'}`}
+              className={`py-2 px-4 font-semibold ${
+                activeTab === 'reviews'
+                  ? 'border-b-2 border-red-600 text-red-600'
+                  : 'text-gray-600'
+              }`}
               onClick={() => setActiveTab('reviews')}
             >
-              Reviews ({product.reviews?.length || 0})
+              Reviews ({reviewCount})
             </button>
           </div>
 
           <div className="py-6">
             {activeTab === 'description' && (
-              <p className="text-gray-600">{product.description || 'No description available'}</p>
+              <p className="text-gray-600">
+                {product.description || 'No description available'}
+              </p>
             )}
             {activeTab === 'reviews' && (
               <div>
                 <div className="flex items-center mb-6">
                   <div className="mr-6">
-                    <p className="text-2xl font-bold">{product.rating.toFixed(1)}</p>
-                    <span className="text-yellow-500">{'★'.repeat(Math.round(product.rating))}</span>
-                    <p className="text-gray-600">({product.reviews?.length || 0} reviews)</p>
+                    <p className="text-2xl font-bold">
+                      {productRating.toFixed(1)}
+                    </p>
+                    <span className="text-yellow-500">
+                      {'★'.repeat(roundedRating)}
+                      {'☆'.repeat(5 - roundedRating)}
+                    </span>
+                    <p className="text-gray-600">({reviewCount} reviews)</p>
                   </div>
                   <div className="flex-1">
                     {[5, 4, 3, 2, 1].map((star) => {
-                      const count = product.reviews?.filter(r => Math.round(r.rating) === star).length || 0;
-                      const percentage = product.reviews?.length ? (count / product.reviews.length) * 100 : 0;
+                      const count = product.reviews
+                        ? product.reviews.filter((r) => Math.round(r.rating) === star)
+                            .length
+                        : 0;
+                      const percentage = product.reviews?.length
+                        ? (count / product.reviews.length) * 100
+                        : 0;
                       return (
                         <div key={star} className="flex items-center mb-1">
                           <span className="w-8">{star} ★</span>
                           <div className="flex-1 h-2 bg-gray-200 rounded">
-                            <div className="h-2 bg-red-600 rounded" style={{ width: `${percentage}%` }}></div>
+                            <div
+                              className="h-2 bg-red-600 rounded"
+                              style={{ width: `${percentage}%` }}
+                            ></div>
                           </div>
                           <span className="ml-2 text-gray-600">{count}</span>
                         </div>
@@ -253,9 +331,14 @@ const ProductDetails = () => {
                   <div className="space-y-4">
                     {product.reviews.map((review, index) => (
                       <div key={index} className="border-b pb-4">
-                        <p className="font-semibold">{review.name}</p>
-                        <p className="text-sm text-gray-500">{new Date(review.date).toLocaleDateString()}</p>
-                        <span className="text-yellow-500">{'★'.repeat(review.rating)}</span>
+                        <p className="font-semibold">{review.name || 'Anonymous'}</p>
+                        <p className="text-sm text-gray-500">
+                          {new Date(review.date).toLocaleDateString()}
+                        </p>
+                        <span className="text-yellow-500">
+                          {'★'.repeat(Math.round(review.rating))}
+                          {'☆'.repeat(5 - Math.round(review.rating))}
+                        </span>
                         <p className="text-gray-600 mt-2">{review.comment}</p>
                       </div>
                     ))}
@@ -271,7 +354,9 @@ const ProductDetails = () => {
                       <label className="block mb-1 font-semibold">Your Review</label>
                       <textarea
                         value={review.comment}
-                        onChange={(e) => setReview({ ...review, comment: e.target.value })}
+                        onChange={(e) =>
+                          setReview({ ...review, comment: e.target.value })
+                        }
                         className="w-full p-2 border border-gray-300 rounded"
                         rows="4"
                         required
@@ -285,7 +370,11 @@ const ProductDetails = () => {
                             key={star}
                             type="button"
                             onClick={() => setReview({ ...review, rating: star })}
-                            className={`text-2xl ${star <= review.rating ? 'text-yellow-500' : 'text-gray-300'}`}
+                            className={`text-2xl ${
+                              star <= review.rating
+                                ? 'text-yellow-500'
+                                : 'text-gray-300'
+                            }`}
                           >
                             ★
                           </button>
@@ -306,52 +395,25 @@ const ProductDetails = () => {
         </div>
       </div>
 
+      {/* Related Products Section */}
       <div className="container mx-auto px-4 py-8">
         <h2 className="text-2xl font-bold mb-6 text-center">Related Products</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
-          {relatedProducts.map((related) => (
-            <div key={related._id} className="bg-white p-4 rounded shadow">
-              <img
-                src={related.images && related.images.length > 0 ? related.images[0] : 'https://via.placeholder.com/200'}
-                alt={related.name}
-                className="w-full h-40 object-cover mb-4"
-              />
-              <h3 className="text-lg font-semibold">{related.name}</h3>
-              <p className="text-red-600 font-semibold">{related.price.toLocaleString()} ₫</p>
-              <div className="flex space-x-2 mt-2">
-                <button className="text-gray-600 hover:text-red-600">♥</button>
-                <button className="text-gray-600 hover:text-red-600">↔</button>
-                <button className="text-gray-600 hover:text-red-600">🛒</button>
+          {relatedProducts.length > 0 ? (
+            relatedProducts.map((related) => (
+              <div key={related._id} onClick={() => handleNavigateToProduct(related._id)}>
+                <ProductCard product={related} />
               </div>
-            </div>
-          ))}
+            ))
+          ) : (
+            <p className="col-span-4 text-center text-gray-600">
+              No related products found.
+            </p>
+          )}
         </div>
       </div>
 
       <div className="bg-gray-100 py-8">
-        <div className="container mx-auto px-4 text-center">
-          <h2 className="text-2xl font-bold mb-4">Sign Up for the Newsletter</h2>
-          <form className="flex justify-center" onSubmit={handleNewsletterSubmit}>
-            <input
-              type="email"
-              name="email"
-              placeholder="Enter Your Email"
-              value={newsletterEmail}
-              onChange={(e) => setNewsletterEmail(e.target.value)}
-              className="p-2 border border-gray-300 rounded-l w-64"
-              required
-            />
-            <button className="bg-red-600 text-white py-2 px-4 rounded-r hover:bg-red-700">
-              Subscribe
-            </button>
-          </form>
-          <div className="flex justify-center space-x-4 mt-4">
-            <button className="text-gray-600 hover:text-red-600">F</button>
-            <button className="text-gray-600 hover:text-red-600">T</button>
-            <button className="text-gray-600 hover:text-red-600">G</button>
-            <button className="text-gray-600 hover:text-red-600">P</button>
-          </div>
-        </div>
       </div>
     </div>
   );

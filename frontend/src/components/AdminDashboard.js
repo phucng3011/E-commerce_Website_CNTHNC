@@ -471,7 +471,7 @@ const AdminDashboard = () => {
                         )}
                       </div>
                       <p className="text-sm mt-2">
-                        <span className="font-semibold">Price:</span> ${product.price}
+                        <span className="font-semibold">Price:</span> {(product.price).toLocaleString()}₫
                       </p>
                       <p className="text-sm truncate">
                         <span className="font-semibold">Category:</span> {product.category || 'N/A'}
