@@ -1,3 +1,4 @@
+// frontend/src/components/ProductDetails.js
 import React, { useState, useEffect, useContext } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import axios from 'axios';
@@ -15,14 +16,20 @@ const ProductDetails = () => {
   const [selectedImage, setSelectedImage] = useState('');
   const [activeTab, setActiveTab] = useState('description');
   const [review, setReview] = useState({ rating: 5, comment: '' });
-  const [newsletterEmail, setNewsletterEmail] = useState(''); // State for newsletter input
+  const [newsletterEmail, setNewsletterEmail] = useState('');
 
   useEffect(() => {
     const fetchProduct = async () => {
       try {
         const response = await axios.get(`http://localhost:5000/api/products/${id}`);
         setProduct(response.data);
-        setSelectedImage(response.data.image);
+        // Ensure images is an array, default to [response.data.image] if it's a single string
+        const productImages = Array.isArray(response.data.images)
+          ? response.data.images
+          : response.data.images
+          ? [response.data.images]
+          : ['https://via.placeholder.com/400'];
+        setSelectedImage(productImages[0]);
 
         if (response.data.category) {
           console.log('Fetching related products for category:', response.data.category);
@@ -47,7 +54,6 @@ const ProductDetails = () => {
     };
     fetchProduct();
 
-    // Cleanup: Reset newsletter email when component unmounts
     return () => {
       setNewsletterEmail('');
     };
@@ -90,7 +96,7 @@ const ProductDetails = () => {
     try {
       await axios.post('http://localhost:5000/api/newsletter', { email: newsletterEmail });
       toast.success('Subscribed successfully!');
-      setNewsletterEmail(''); // Clear input after successful submission
+      setNewsletterEmail('');
     } catch (err) {
       toast.error(err.response?.data?.message || 'Failed to subscribe');
     }
@@ -118,11 +124,11 @@ const ProductDetails = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           <div className="flex">
             <div className="flex flex-col space-y-4 mr-4">
-              {[product.image, product.image, product.image].map((img, index) => (
+              {Array.isArray(product.images) && product.images.map((img, index) => (
                 <img
                   key={index}
                   src={img || 'https://via.placeholder.com/100'}
-                  alt={`Thumbnail ${index}`}
+                  alt={`Thumbnail ${index + 1}`}
                   className={`w-20 h-20 object-cover cursor-pointer border-2 ${selectedImage === img ? 'border-red-600' : 'border-gray-300'}`}
                   onClick={() => setSelectedImage(img)}
                 />
@@ -331,7 +337,7 @@ const ProductDetails = () => {
           {relatedProducts.map((related) => (
             <div key={related._id} className="bg-white p-4 rounded shadow">
               <img
-                src={related.image || 'https://via.placeholder.com/200'}
+                src={Array.isArray(related.images) && related.images.length > 0 ? related.images[0] : 'https://via.placeholder.com/200'}
                 alt={related.name}
                 className="w-full h-40 object-cover mb-4"
               />

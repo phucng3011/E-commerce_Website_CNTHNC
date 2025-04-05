@@ -1,3 +1,4 @@
+// backend/models/productModel.js
 const mongoose = require('mongoose');
 
 const productSchema = new mongoose.Schema({
@@ -6,7 +7,7 @@ const productSchema = new mongoose.Schema({
   description: { type: String },
   category: { type: String, required: true },
   brand: { type: String },
-  image: { type: String },
+  images: [{ type: String }], // Changed from 'image' to 'images' as an array
   inStock: { type: Boolean, default: true },
   rating: { type: Number, default: 0 },
   reviews: [

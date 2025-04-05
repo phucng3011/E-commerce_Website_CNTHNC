@@ -54,7 +54,7 @@ const ProductCard = ({ product }) => {
         {/* Product Image */}
         <div className="product-img relative flex-shrink-0">
           <img
-            src={product.image || './img/product01.png'}
+            src={product.images[0] || './img/product01.png'}
             alt={product.name}
             className="w-full h-48 object-cover rounded-t-lg"
           />
