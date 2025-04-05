@@ -144,7 +144,7 @@ const ProductDetails = () => {
               <span className="text-gray-500 ml-2">({product.reviews?.length || 0} reviews)</span>
               <Link to="#reviews" className="ml-2 text-red-600 hover:underline">Add a Review</Link>
             </div>
-            <p className="text-2xl font-semibold text-red-600 mb-2">${product.price.toFixed(2)}</p>
+            <p className="text-2xl font-semibold text-red-600 mb-2">{product.price.toLocaleString()} ₫</p>
             <p className="text-gray-600 mb-4">{product.description || 'No description available'}</p>
             <p className="text-gray-600 mb-4">
               <span className="font-semibold">Availability: </span>
@@ -336,7 +336,7 @@ const ProductDetails = () => {
                 className="w-full h-40 object-cover mb-4"
               />
               <h3 className="text-lg font-semibold">{related.name}</h3>
-              <p className="text-red-600 font-semibold">${related.price.toFixed(2)}</p>
+              <p className="text-red-600 font-semibold">{related.price.toLocaleString()} ₫</p>
               <div className="flex space-x-2 mt-2">
                 <button className="text-gray-600 hover:text-red-600">♥</button>
                 <button className="text-gray-600 hover:text-red-600">↔</button>

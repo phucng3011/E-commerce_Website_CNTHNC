@@ -15,7 +15,6 @@ const AdminDashboard = () => {
     inStock: true,
     rating: 0,
     salesCount: 0,
-    isHotDeal: false,
     discount: 0,
   });
   const [editingProductId, setEditingProductId] = useState(null);
@@ -90,7 +89,6 @@ const AdminDashboard = () => {
         inStock: true,
         rating: 0,
         salesCount: 0,
-        isHotDeal: false,
         discount: 0,
       });
       setCurrentPage(1); // Reset to page 1 after adding/updating a product
@@ -118,7 +116,6 @@ const AdminDashboard = () => {
       inStock: product.inStock,
       rating: product.rating,
       salesCount: product.salesCount || 0,
-      isHotDeal: product.isHotDeal || false,
       discount: product.discount || 0,
     });
   };
@@ -287,19 +284,6 @@ const AdminDashboard = () => {
               />
             </div>
             <div className="form-group">
-              <label htmlFor="isHotDeal" className="flex items-center">
-                <input
-                  type="checkbox"
-                  id="isHotDeal"
-                  name="isHotDeal"
-                  checked={formData.isHotDeal}
-                  onChange={handleInputChange}
-                  className="mr-2"
-                />
-                Is Hot Deal
-              </label>
-            </div>
-            <div className="form-group">
               <label htmlFor="discount" className="block mb-1">
                 Discount (%)
               </label>
@@ -336,7 +320,6 @@ const AdminDashboard = () => {
                     inStock: true,
                     rating: 0,
                     salesCount: 0,
-                    isHotDeal: false,
                     discount: 0,
                   });
                 }}
@@ -362,7 +345,6 @@ const AdminDashboard = () => {
                   <p>In Stock: {product.inStock ? 'Yes' : 'No'}</p>
                   <p>Rating: {product.rating}</p>
                   <p>Sales Count: {product.salesCount || 0}</p>
-                  <p>Hot Deal: {product.isHotDeal ? 'Yes' : 'No'}</p>
                   <p>Discount: {product.discount || 0}%</p>
                   <p>Created At: {new Date(product.createdAt).toLocaleDateString()}</p>
                   <div className="mt-2 flex space-x-2">

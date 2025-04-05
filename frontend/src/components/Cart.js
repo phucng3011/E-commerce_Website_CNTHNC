@@ -59,12 +59,10 @@ const Cart = () => {
   };
 
   const calculateTotal = () => {
-    return cart.items
-      .reduce((total, item) => {
-        const price = item.productId?.price || 0; // Fallback to 0 if price is undefined
-        return total + price * item.quantity;
-      }, 0)
-      .toFixed(2);
+    return cart.items.reduce((total, item) => {
+      const price = item.productId?.price || 0; // Fallback to 0 if price is undefined
+      return total + price * item.quantity;
+    }, 0);
   };
 
   if (loading) return <div className="text-center py-10">Loading...</div>;
@@ -87,7 +85,6 @@ const Cart = () => {
             <div className="col-md-8">
               <div className="space-y-4">
                 {cart.items.map((item) => {
-                  // Skip rendering if productId is undefined
                   if (!item.productId) {
                     console.warn('Invalid cart item, productId is undefined:', item);
                     return null;
@@ -106,7 +103,7 @@ const Cart = () => {
                       <div className="flex-1">
                         <h3 className="text-lg font-bold">{item.productId.name}</h3>
                         <p className="text-gray-600">
-                          Price: ${item.productId.price?.toFixed(2) || '0.00'}
+                          Price: {item.productId.price?.toLocaleString() || '0'}₫
                         </p>
                         <div className="flex items-center mt-2">
                           <button
@@ -131,7 +128,7 @@ const Cart = () => {
                       </div>
                       <div className="text-right">
                         <p className="text-lg font-bold">
-                          ${(item.productId.price * item.quantity).toFixed(2)}
+                          {(item.productId.price * item.quantity).toLocaleString()}₫
                         </p>
                         <button
                           onClick={() => handleRemoveItem(item.productId._id)}
@@ -152,7 +149,7 @@ const Cart = () => {
                 <h3 className="text-xl font-bold mb-4">Order Summary</h3>
                 <div className="flex justify-between mb-2">
                   <span>Subtotal</span>
-                  <span>${calculateTotal()}</span>
+                  <span>{calculateTotal().toLocaleString()}₫</span>
                 </div>
                 <div className="flex justify-between mb-2">
                   <span>Shipping</span>
@@ -160,7 +157,7 @@ const Cart = () => {
                 </div>
                 <div className="flex justify-between font-bold text-lg border-t pt-2">
                   <span>Total</span>
-                  <span>${calculateTotal()}</span>
+                  <span>{calculateTotal().toLocaleString()}₫</span>
                 </div>
                 <Link
                   to="/checkout"

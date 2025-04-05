@@ -121,29 +121,6 @@ const getProductById = async (req, res) => {
   }
 };
 
-const getHotDealProduct = async (req, res) => {
-  try {
-    // Verify database connection
-    if (mongoose.connection.readyState !== 1) {
-      throw new Error('Database not connected');
-    }
-
-    const hotDealProduct = await Product.findOne({ isHotDeal: true })
-      .sort({ createdAt: -1 })
-      .lean();
-    if (!hotDealProduct) {
-      return res.status(404).json({ message: 'No hot deal product found' });
-    }
-    res.status(200).json(hotDealProduct);
-  } catch (error) {
-    console.error('Error in getHotDealProduct:', {
-      message: error.message,
-      stack: error.stack,
-    });
-    res.status(500).json({ message: 'Server error: Unable to fetch hot deal product' });
-  }
-};
-
 const createProduct = async (req, res) => {
   try {
     const product = new Product(req.body);
@@ -235,7 +212,6 @@ const addReview = async (req, res) => {
 module.exports = {
   getProducts,
   getProductById,
-  getHotDealProduct,
   createProduct,
   updateProduct,
   deleteProduct,

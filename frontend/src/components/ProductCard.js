@@ -88,13 +88,13 @@ const ProductCard = ({ product }) => {
             {discountPercentage > 0 ? (
               <>
                 <span className="line-through text-gray-400">
-                  ${originalPrice.toFixed(2)}
+                  {originalPrice.toLocaleString()}₫
                 </span>
                 <span className="mx-1"> </span>
-                <span>${discountedPrice.toFixed(2)}</span>
+                <span>{discountedPrice.toLocaleString()}₫</span>
               </>
             ) : (
-              <span>${originalPrice.toFixed(2)}</span>
+              <span>{originalPrice.toLocaleString()}₫</span>
             )}
           </h4>
           <div className="product-rating flex space-x-1 text-yellow-400">

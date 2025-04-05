@@ -19,7 +19,6 @@ const productSchema = new mongoose.Schema({
     },
   ],
   salesCount: { type: Number, default: 0 },
-  isHotDeal: { type: Boolean, default: false },
   discount: { type: Number, default: 0 },
   createdAt: { type: Date, default: Date.now },
 });

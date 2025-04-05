@@ -33,14 +33,6 @@ const Navigation = () => {
           </li>
           <li>
             <button
-              onClick={() => handleNavClick('/products', 'sort=-rating')}
-              className={`text-gray-600 hover:text-red-600 ${isActive('sort', '-rating') ? 'text-red-600 font-bold' : ''}`}
-            >
-              Hot Deals
-            </button>
-          </li>
-          <li>
-            <button
               onClick={() => handleNavClick('/products', 'category=Laptops')}
               className={`text-gray-600 hover:text-red-600 ${isActive('category', 'Laptops') ? 'text-red-600 font-bold' : ''}`}
             >

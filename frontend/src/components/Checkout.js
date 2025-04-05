@@ -267,7 +267,7 @@ const Checkout = () => {
               {cart.map((item) => (
                 <div key={item.productId._id} className="flex justify-between mb-2">
                   <span>{item.productId.name} x {item.quantity}</span>
-                  <span>${(item.productId.price * item.quantity).toFixed(2)}</span>
+                  <span>{(item.productId.price * item.quantity).toLocaleString()}₫</span>
                 </div>
               ))}
               <div className="flex justify-between mb-2">
@@ -276,7 +276,7 @@ const Checkout = () => {
               </div>
               <div className="flex justify-between font-bold text-lg border-t pt-2">
                 <span>Total</span>
-                <span>${calculateTotal().toFixed(2)}</span>
+                <span>{calculateTotal().toLocaleString()}₫</span>
               </div>
             </div>
 
