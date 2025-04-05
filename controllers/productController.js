@@ -163,14 +163,16 @@ const deleteProduct = async (req, res) => {
 
 const addReview = async (req, res) => {
   const { rating, comment } = req.body;
-
-  // Validate req.user
-  if (!req.user || !req.user.id || !req.user.name) {
-    return res.status(401).json({ message: 'User authentication required' });
-  }
-
-  const userId = req.user.id;
   const productId = req.params.id;
+  const userId = req.user._id;
+
+  // Validate input
+  if (!rating || rating < 1 || rating > 5) {
+    return res.status(400).json({ message: 'Rating must be between 1 and 5' });
+  }
+  if (!comment || comment.trim() === '') {
+    return res.status(400).json({ message: 'Comment is required' });
+  }
 
   try {
     const product = await Product.findById(productId);
@@ -178,19 +180,14 @@ const addReview = async (req, res) => {
       return res.status(404).json({ message: 'Product not found' });
     }
 
-    // Check if user already reviewed
-    const existingReview = product.reviews.find(review => review.userId?.toString() === userId);
+    // Check if the user has already reviewed this product
+    const existingReview = product.reviews.find(review => review.userId.toString() === userId.toString());
     if (existingReview) {
       return res.status(400).json({ message: 'You have already reviewed this product' });
     }
 
-    // Validate rating
-    if (!rating || rating < 1 || rating > 5) {
-      return res.status(400).json({ message: 'Rating must be between 1 and 5' });
-    }
-
     const review = {
-      userId,
+      userId: userId,
       name: req.user.name,
       rating: Number(rating),
       comment,
@@ -198,14 +195,15 @@ const addReview = async (req, res) => {
     };
 
     product.reviews.push(review);
-    // Update average rating
-    product.rating = product.reviews.reduce((sum, r) => sum + r.rating, 0) / product.reviews.length;
-    await product.save();
 
-    res.status(201).json({ message: 'Review added successfully', review });
-  } catch (error) {
-    console.error('Error in addReview:', error);
-    res.status(500).json({ message: 'Server error: Unable to add review' });
+    // Recalculate the average rating
+    product.rating =
+      product.reviews.reduce((acc, item) => acc + item.rating, 0) / product.reviews.length;
+
+    await product.save();
+    res.status(201).json({ message: 'Review added successfully', product });
+  } catch (err) {
+    res.status(500).json({ message: 'Server error' });
   }
 };
 

@@ -23,13 +23,7 @@ const ProductDetails = () => {
       try {
         const response = await axios.get(`http://localhost:5000/api/products/${id}`);
         setProduct(response.data);
-        // Ensure images is an array, default to [response.data.image] if it's a single string
-        const productImages = Array.isArray(response.data.images)
-          ? response.data.images
-          : response.data.images
-          ? [response.data.images]
-          : ['https://via.placeholder.com/400'];
-        setSelectedImage(productImages[0]);
+        setSelectedImage(response.data.images && response.data.images.length > 0 ? response.data.images[0] : 'https://via.placeholder.com/400');
 
         if (response.data.category) {
           console.log('Fetching related products for category:', response.data.category);
@@ -124,7 +118,7 @@ const ProductDetails = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           <div className="flex">
             <div className="flex flex-col space-y-4 mr-4">
-              {Array.isArray(product.images) && product.images.map((img, index) => (
+              {product.images && product.images.map((img, index) => (
                 <img
                   key={index}
                   src={img || 'https://via.placeholder.com/100'}
@@ -148,7 +142,6 @@ const ProductDetails = () => {
             <div className="flex items-center mb-2">
               <span className="text-yellow-500">{'★'.repeat(Math.round(product.rating))}</span>
               <span className="text-gray-500 ml-2">({product.reviews?.length || 0} reviews)</span>
-              <Link to="#reviews" className="ml-2 text-red-600 hover:underline">Add a Review</Link>
             </div>
             <p className="text-2xl font-semibold text-red-600 mb-2">{product.price.toLocaleString()} ₫</p>
             <p className="text-gray-600 mb-4">{product.description || 'No description available'}</p>
@@ -275,24 +268,6 @@ const ProductDetails = () => {
                   <h3 className="text-xl font-bold mb-4">Add Your Review</h3>
                   <form onSubmit={handleReviewSubmit} className="space-y-4">
                     <div>
-                      <label className="block mb-1 font-semibold">Your Name</label>
-                      <input
-                        type="text"
-                        value={localStorage.getItem('userName') || ''}
-                        disabled
-                        className="w-full p-2 border border-gray-300 rounded"
-                      />
-                    </div>
-                    <div>
-                      <label className="block mb-1 font-semibold">Your Email</label>
-                      <input
-                        type="email"
-                        value={localStorage.getItem('userEmail') || ''}
-                        disabled
-                        className="w-full p-2 border border-gray-300 rounded"
-                      />
-                    </div>
-                    <div>
                       <label className="block mb-1 font-semibold">Your Review</label>
                       <textarea
                         value={review.comment}
@@ -337,7 +312,7 @@ const ProductDetails = () => {
           {relatedProducts.map((related) => (
             <div key={related._id} className="bg-white p-4 rounded shadow">
               <img
-                src={Array.isArray(related.images) && related.images.length > 0 ? related.images[0] : 'https://via.placeholder.com/200'}
+                src={related.images && related.images.length > 0 ? related.images[0] : 'https://via.placeholder.com/200'}
                 alt={related.name}
                 className="w-full h-40 object-cover mb-4"
               />

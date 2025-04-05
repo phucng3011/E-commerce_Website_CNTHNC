@@ -105,6 +105,10 @@ const ProductCard = ({ product }) => {
               ></i>
             ))}
           </div>
+          {/* Sales Count */}
+          <p className="product-sales text-gray-500 text-sm mt-2">
+            <span className="font-semibold">Sales:</span> {product.salesCount || 0}
+          </p>
           <div className="product-btns flex space-x-2 mt-2">
             <button className="add-to-wishlist text-gray-600 hover:text-red-600">
               <i className="fa fa-heart-o"></i>
