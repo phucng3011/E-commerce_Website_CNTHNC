@@ -195,36 +195,38 @@ const getUserOrders = async (req, res) => {
 
 // Update User Profile
 const updateUserProfile = async (req, res) => {
-  const { name, email } = req.body;
-  const userId = req.user._id;
+  const { name, email, phone, company, address, city, state, postalCode, country } = req.body;
 
   try {
-    const user = await User.findById(userId);
+    const user = await User.findById(req.user.id);
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
     }
 
-    // Validate input
-    if (!name || name.trim() === '') {
-      return res.status(400).json({ message: 'Name is required' });
-    }
-    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      return res.status(400).json({ message: 'Valid email is required' });
-    }
+    user.name = name || user.name;
+    user.email = email || user.email;
+    user.phone = phone || user.phone || '';
+    user.company = company || user.company || '';
+    user.address = {
+      address: address || user.address?.address || '',
+      city: city || user.address?.city || '',
+      state: state || user.address?.state || '',
+      postalCode: postalCode || user.address?.postalCode || '',
+      country: country || user.address?.country || '',
+    };
 
-    // Check if the email is already in use by another user
-    const emailExists = await User.findOne({ email, _id: { $ne: userId } });
-    if (emailExists) {
-      return res.status(400).json({ message: 'Email already in use' });
-    }
-
-    user.name = name;
-    user.email = email;
-    await user.save();
-
-    res.json({ message: 'Profile updated successfully', user: { ...user._doc, password: undefined } });
-  } catch (err) {
-    console.error('Error in updateUserProfile:', err.message);
+    const updatedUser = await user.save();
+    res.status(200).json({
+      _id: updatedUser._id,
+      name: updatedUser.name,
+      email: updatedUser.email,
+      phone: updatedUser.phone,
+      company: updatedUser.company,
+      address: updatedUser.address,
+      isAdmin: updatedUser.isAdmin,
+    });
+  } catch (error) {
+    console.error('Error in updateUserProfile:', error);
     res.status(500).json({ message: 'Server error' });
   }
 };

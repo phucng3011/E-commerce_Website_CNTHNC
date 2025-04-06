@@ -9,7 +9,17 @@ const Profile = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [activeTab, setActiveTab] = useState('details');
-  const [formData, setFormData] = useState({ name: '', email: '' });
+  const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    phone: '',
+    company: '',
+    address: '',
+    city: '',
+    state: '',
+    postalCode: '',
+    country: '',
+  });
   const [passwordData, setPasswordData] = useState({
     currentPassword: '',
     newPassword: '',
@@ -37,8 +47,18 @@ const Profile = () => {
         ]);
         setUser(userRes.data);
         setOrders(ordersRes.data || []);
-        console.log('Orders fetched:', ordersRes.data); // Debug log
-        setFormData({ name: userRes.data.name, email: userRes.data.email });
+        console.log('Orders fetched:', ordersRes.data);
+        setFormData({
+          name: userRes.data.name,
+          email: userRes.data.email,
+          phone: userRes.data.phone || '',
+          company: userRes.data.company || '',
+          address: userRes.data.address?.address || '',
+          city: userRes.data.address?.city || '',
+          state: userRes.data.address?.state || '',
+          postalCode: userRes.data.address?.postalCode || '',
+          country: userRes.data.address?.country || '',
+        });
         setLoading(false);
       } catch (err) {
         console.error('Error fetching profile:', err);
@@ -58,7 +78,7 @@ const Profile = () => {
         formData,
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      setUser(response.data.user);
+      setUser(response.data);
       toast.success('Profile updated successfully!');
     } catch (err) {
       toast.error(err.response?.data?.message || 'Failed to update profile');
@@ -83,7 +103,6 @@ const Profile = () => {
       );
       setPasswordData({ currentPassword: '', newPassword: '', confirmNewPassword: '' });
       toast.success('Password updated successfully! Please log in with your new password.');
-
       localStorage.removeItem('token');
       localStorage.removeItem('userName');
       localStorage.removeItem('userEmail');
@@ -156,6 +175,80 @@ const Profile = () => {
                   required
                 />
               </div>
+              <div className="form-group">
+                <label htmlFor="phone" className="block mb-1 font-semibold">Phone</label>
+                <input
+                  type="tel"
+                  id="phone"
+                  value={formData.phone}
+                  onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                  className="w-full p-3 border border-gray-300 rounded"
+                />
+              </div>
+              <div className="form-group">
+                <label htmlFor="company" className="block mb-1 font-semibold">Company</label>
+                <input
+                  type="text"
+                  id="company"
+                  value={formData.company}
+                  onChange={(e) => setFormData({ ...formData, company: e.target.value })}
+                  className="w-full p-3 border border-gray-300 rounded"
+                />
+              </div>
+              <div className="form-group">
+                <label htmlFor="address" className="block mb-1 font-semibold">Address</label>
+                <input
+                  type="text"
+                  id="address"
+                  value={formData.address}
+                  onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+                  className="w-full p-3 border border-gray-300 rounded"
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="form-group">
+                  <label htmlFor="city" className="block mb-1 font-semibold">City</label>
+                  <input
+                    type="text"
+                    id="city"
+                    value={formData.city}
+                    onChange={(e) => setFormData({ ...formData, city: e.target.value })}
+                    className="w-full p-3 border border-gray-300 rounded"
+                  />
+                </div>
+                <div className="form-group">
+                  <label htmlFor="state" className="block mb-1 font-semibold">State</label>
+                  <input
+                    type="text"
+                    id="state"
+                    value={formData.state}
+                    onChange={(e) => setFormData({ ...formData, state: e.target.value })}
+                    className="w-full p-3 border border-gray-300 rounded"
+                  />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="form-group">
+                  <label htmlFor="postalCode" className="block mb-1 font-semibold">ZIP Code</label>
+                  <input
+                    type="text"
+                    id="postalCode"
+                    value={formData.postalCode}
+                    onChange={(e) => setFormData({ ...formData, postalCode: e.target.value })}
+                    className="w-full p-3 border border-gray-300 rounded"
+                  />
+                </div>
+                <div className="form-group">
+                  <label htmlFor="country" className="block mb-1 font-semibold">Country</label>
+                  <input
+                    type="text"
+                    id="country"
+                    value={formData.country}
+                    onChange={(e) => setFormData({ ...formData, country: e.target.value })}
+                    className="w-full p-3 border border-gray-300 rounded"
+                  />
+                </div>
+              </div>
               <button
                 type="submit"
                 className="bg-red-600 text-white py-2 px-4 rounded hover:bg-red-700 transition-colors"
@@ -166,7 +259,7 @@ const Profile = () => {
           </section>
         )}
 
-        {/* Order History Tab */}
+        {/* Order History Tab (unchanged) */}
         {activeTab === 'orders' && (
           <section className="bg-white p-6 rounded shadow">
             <h3 className="text-xl font-bold mb-4">Order History</h3>
@@ -210,7 +303,7 @@ const Profile = () => {
           </section>
         )}
 
-        {/* Change Password Tab */}
+        {/* Change Password Tab (unchanged) */}
         {activeTab === 'password' && (
           <section className="bg-white p-6 rounded shadow">
             <h3 className="text-xl font-bold mb-4">Change Password</h3>

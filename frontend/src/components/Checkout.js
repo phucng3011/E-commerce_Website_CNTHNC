@@ -23,17 +23,55 @@ const Checkout = () => {
   });
   const [paymentMethod, setPaymentMethod] = useState('direct-bank-transfer');
   const [errors, setErrors] = useState({});
+  const [isPrefilled, setIsPrefilled] = useState(false); // Flag to prevent overwriting user edits
 
   useEffect(() => {
-    if (localStorage.getItem('token')) {
-      fetchCart();
+    const token = localStorage.getItem('token');
+    if (!token) {
+      setLoading(false);
+      return;
     }
-    setLoading(false);
-  }, [fetchCart]);
+
+    const fetchData = async () => {
+      try {
+        await fetchCart();
+        const userRes = await axios.get('http://localhost:5000/api/users/me', {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const user = userRes.data;
+
+        // Only pre-fill if not already pre-filled (prevents overwriting user edits on re-render)
+        if (!isPrefilled) {
+          setBillingDetails(prevDetails => ({
+            ...prevDetails,
+            firstName: user.name.split(' ')[0] || '',
+            lastName: user.name.split(' ').slice(1).join(' ') || '',
+            company: user.company || '',
+            address: user.address?.address || '',
+            city: user.address?.city || '',
+            state: user.address?.state || '',
+            zip: user.address?.postalCode || '',
+            country: user.address?.country || '',
+            email: user.email || '',
+            phone: user.phone || '',
+          }));
+          setIsPrefilled(true);
+        }
+        setLoading(false);
+      } catch (error) {
+        console.error('Error fetching user data:', error);
+        setLoading(false);
+      }
+    };
+    fetchData();
+  }, [fetchCart, isPrefilled]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setBillingDetails({ ...billingDetails, [name]: value });
+    setBillingDetails(prevDetails => ({
+      ...prevDetails,
+      [name]: value,
+    }));
   };
 
   const validateForm = () => {
@@ -54,7 +92,7 @@ const Checkout = () => {
 
   const calculateTotals = () => {
     const itemsPrice = cart.reduce((total, item) => {
-      const price = item.price || item.productId?.price || 0; // Fallback to product price or 0
+      const price = item.price || item.productId?.price || 0;
       if (!item.price) console.warn('Missing price in cart item:', item);
       return total + price * item.quantity;
     }, 0);
@@ -159,7 +197,7 @@ const Checkout = () => {
                     name="firstName"
                     placeholder="First Name"
                     value={billingDetails.firstName}
-                    onChange={handleInputChange}
+                    onChange={handleInputChange} // Editable by user
                     aria-label="First Name"
                   />
                   {errors.firstName && <p className="text-red-500 text-sm mt-1">{errors.firstName}</p>}
@@ -171,7 +209,7 @@ const Checkout = () => {
                     name="lastName"
                     placeholder="Last Name"
                     value={billingDetails.lastName}
-                    onChange={handleInputChange}
+                    onChange={handleInputChange} // Editable by user
                     aria-label="Last Name"
                   />
                   {errors.lastName && <p className="text-red-500 text-sm mt-1">{errors.lastName}</p>}
@@ -183,7 +221,7 @@ const Checkout = () => {
                 name="company"
                 placeholder="Company (optional)"
                 value={billingDetails.company}
-                onChange={handleInputChange}
+                onChange={handleInputChange} // Editable by user
                 aria-label="Company"
               />
               <input
@@ -192,7 +230,7 @@ const Checkout = () => {
                 name="address"
                 placeholder="Address"
                 value={billingDetails.address}
-                onChange={handleInputChange}
+                onChange={handleInputChange} // Editable by user
                 aria-label="Address"
               />
               {errors.address && <p className="text-red-500 text-sm mt-1">{errors.address}</p>}
@@ -204,7 +242,7 @@ const Checkout = () => {
                     name="city"
                     placeholder="City"
                     value={billingDetails.city}
-                    onChange={handleInputChange}
+                    onChange={handleInputChange} // Editable by user
                     aria-label="City"
                   />
                   {errors.city && <p className="text-red-500 text-sm mt-1">{errors.city}</p>}
@@ -216,7 +254,7 @@ const Checkout = () => {
                     name="state"
                     placeholder="State"
                     value={billingDetails.state}
-                    onChange={handleInputChange}
+                    onChange={handleInputChange} // Editable by user
                     aria-label="State"
                   />
                   {errors.state && <p className="text-red-500 text-sm mt-1">{errors.state}</p>}
@@ -228,7 +266,7 @@ const Checkout = () => {
                     name="zip"
                     placeholder="ZIP Code"
                     value={billingDetails.zip}
-                    onChange={handleInputChange}
+                    onChange={handleInputChange} // Editable by user
                     aria-label="ZIP Code"
                   />
                   {errors.zip && <p className="text-red-500 text-sm mt-1">{errors.zip}</p>}
@@ -240,7 +278,7 @@ const Checkout = () => {
                 name="country"
                 placeholder="Country"
                 value={billingDetails.country}
-                onChange={handleInputChange}
+                onChange={handleInputChange} // Editable by user
                 aria-label="Country"
               />
               {errors.country && <p className="text-red-500 text-sm mt-1">{errors.country}</p>}
@@ -250,7 +288,7 @@ const Checkout = () => {
                 name="email"
                 placeholder="Email"
                 value={billingDetails.email}
-                onChange={handleInputChange}
+                onChange={handleInputChange} // Editable by user
                 aria-label="Email"
               />
               {errors.email && <p className="text-red-500 text-sm mt-1">{errors.email}</p>}
@@ -260,7 +298,7 @@ const Checkout = () => {
                 name="phone"
                 placeholder="Phone"
                 value={billingDetails.phone}
-                onChange={handleInputChange}
+                onChange={handleInputChange} // Editable by user
                 aria-label="Phone"
               />
               {errors.phone && <p className="text-red-500 text-sm mt-1">{errors.phone}</p>}
@@ -269,7 +307,7 @@ const Checkout = () => {
                 name="notes"
                 placeholder="Order Notes (optional)"
                 value={billingDetails.notes}
-                onChange={handleInputChange}
+                onChange={handleInputChange} // Editable by user
                 aria-label="Order Notes"
               />
             </form>
