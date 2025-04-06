@@ -18,6 +18,7 @@ import PrivateRoute from './components/PrivateRoute';
 import { CartProvider } from './context/CartContext';
 import AdminOrders from './components/AdminOrders';
 import AdminOrderDetails from './components/AdminOrderDetails';
+import PrivacyPolicy from './components/PrivacyPolicy';
 function App() {
   return (
     <CartProvider>
@@ -26,6 +27,7 @@ function App() {
         <Navigation />
         <div className="container mx-auto p-4">
           <Routes>
+            <Route path="/privacy-policy" element={<PrivacyPolicy />} />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
             <Route path="/" element={<Home />} />

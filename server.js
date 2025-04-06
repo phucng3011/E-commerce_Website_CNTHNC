@@ -2,6 +2,9 @@ require('dotenv').config();
 const express = require('express');
 const connectDB = require('./config/db');
 const cors = require('cors');
+const passport = require('passport');
+const session = require('express-session');
+const { passport: passportConfig } = require('./config/passport');
 
 const app = express();
 
@@ -14,6 +17,15 @@ app.use(cors({
   credentials: true,
 }));
 app.use(express.json());
+app.use(
+  session({
+    secret: process.env.SESSION_SECRET || 'your-secret-key',
+    resave: false,
+    saveUninitialized: false,
+  })
+);
+app.use(passport.initialize());
+app.use(passport.session());
 
 // Routes
 app.use('/api/products', require('./routes/productRoutes'));
@@ -21,6 +33,7 @@ app.use('/api/users', require('./routes/userRoutes'));
 app.use('/api/cart', require('./routes/cartRoutes'));
 app.use('/api/orders', require('./routes/orderRoutes'));
 app.use('/api/newsletter', require('./routes/newsletterRoutes'));
+app.use('/auth', require('./routes/authRoutes')); // New auth routes
 
 app.get('/', (req, res) => {
   res.send('Server is running');
