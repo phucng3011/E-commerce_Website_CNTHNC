@@ -52,8 +52,16 @@ const Checkout = () => {
     return Object.keys(newErrors).length === 0;
   };
 
-  const calculateTotal = () => {
-    return cart.reduce((total, item) => total + item.productId.price * item.quantity, 0);
+  const calculateTotals = () => {
+    const itemsPrice = cart.reduce((total, item) => {
+      const price = item.price || item.productId?.price || 0; // Fallback to product price or 0
+      if (!item.price) console.warn('Missing price in cart item:', item);
+      return total + price * item.quantity;
+    }, 0);
+    const shippingPrice = 0;
+    const taxPrice = itemsPrice * 0.1;
+    const totalPrice = itemsPrice + shippingPrice + taxPrice;
+    return { itemsPrice, shippingPrice, taxPrice, totalPrice };
   };
 
   const handlePlaceOrder = async (e) => {
@@ -67,52 +75,64 @@ const Checkout = () => {
       return;
     }
 
-    if (cart.length === 0) {
+    if (!cart || cart.length === 0) {
       toast.error('Your cart is empty.');
       return;
     }
 
     try {
+      const { itemsPrice, shippingPrice, taxPrice, totalPrice } = calculateTotals();
+
       const orderData = {
-        billingDetails,
+        billingDetails: {
+          address: billingDetails.address,
+          city: billingDetails.city,
+          postalCode: billingDetails.zip,
+          country: billingDetails.country,
+        },
         paymentMethod,
-        cartItems: cart.map(item => ({
-          productId: item.productId._id,
-          quantity: item.quantity,
-          price: item.productId.price,
-        })),
-        total: calculateTotal(),
+        cartItems: cart.map((item) => {
+          const price = item.price || item.productId?.price;
+          if (!price) throw new Error(`Price missing for product: ${item.productId.name}`);
+          return {
+            productId: item.productId._id,
+            quantity: item.quantity,
+            price,
+            name: item.productId.name,
+            image: item.productId.images?.[0],
+          };
+        }),
+        itemsPrice,
+        shippingPrice,
+        taxPrice,
+        totalPrice,
       };
 
-      console.log('Order Data Sent:', orderData);
-      const orderResponse = await axios.post('http://localhost:5000/api/orders/create', orderData, {
+      console.log('Sending order data:', orderData);
+
+      const orderResponse = await axios.post(
+        'http://localhost:5000/api/orders/create',
+        orderData,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      await axios.delete('http://localhost:5000/api/cart', {
         headers: { Authorization: `Bearer ${token}` },
       });
-      console.log('Order Response:', orderResponse.data);
 
-      console.log('Attempting to clear cart...');
-      const deleteResponse = await axios.delete('http://localhost:5000/api/cart', {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      console.log('Cart Delete Response:', deleteResponse.data);
-
-      console.log('Fetching updated cart...');
       await fetchCart();
-
       toast.success('Order placed successfully!');
       navigate('/success');
     } catch (error) {
-      console.error('Error placing order:', {
-        message: error.message,
-        response: error.response?.data,
-        status: error.response?.status,
-      });
-      toast.error(error.response?.data?.message || 'Failed to place order.');
+      console.error('Error placing order:', error.response?.data || error);
+      toast.error(error.response?.data?.message || error.message || 'Failed to place order.');
     }
   };
 
   if (loading) return <div className="text-center py-10">Loading...</div>;
-  if (cart.length === 0) return <div className="text-center py-10">Your cart is empty.</div>;
+  if (!cart || cart.length === 0) return <div className="text-center py-10">Your cart is empty.</div>;
+
+  const { itemsPrice, totalPrice } = calculateTotals();
 
   return (
     <div className="section">
@@ -267,16 +287,20 @@ const Checkout = () => {
               {cart.map((item) => (
                 <div key={item.productId._id} className="flex justify-between mb-2">
                   <span>{item.productId.name} x {item.quantity}</span>
-                  <span>{(item.productId.price * item.quantity).toLocaleString()}₫</span>
+                  <span>{((item.price || item.productId?.price || 0) * item.quantity).toLocaleString()}₫</span>
                 </div>
               ))}
+              <div className="flex justify-between mb-2">
+                <span>Subtotal</span>
+                <span>{itemsPrice.toLocaleString()}₫</span>
+              </div>
               <div className="flex justify-between mb-2">
                 <span>Shipping</span>
                 <span>Free</span>
               </div>
               <div className="flex justify-between font-bold text-lg border-t pt-2">
                 <span>Total</span>
-                <span>{calculateTotal().toLocaleString()}₫</span>
+                <span>{totalPrice.toLocaleString()}₫</span>
               </div>
             </div>
 

@@ -89,27 +89,20 @@ const Cart = () => {
                     console.warn('Invalid cart item, productId is undefined:', item);
                     return null;
                   }
-
+                  const price = item.productId?.price || 0;
                   return (
-                    <div
-                      key={item.productId._id}
-                      className="flex items-center border p-4 rounded bg-white shadow-sm"
-                    >
+                    <div key={item.productId._id} className="flex items-center border p-4 rounded bg-white shadow-sm">
                       <img
-                        src={item.productId.image || './img/product01.png'}
+                        src={item.productId.images?.[0] || './img/product01.png'}
                         alt={item.productId.name}
                         className="w-24 h-24 object-cover mr-4 rounded"
                       />
                       <div className="flex-1">
                         <h3 className="text-lg font-bold">{item.productId.name}</h3>
-                        <p className="text-gray-600">
-                          Price: {item.productId.price?.toLocaleString() || '0'}₫
-                        </p>
+                        <p className="text-gray-600">Price: {price.toLocaleString()}₫</p> {/* Use cart price */}
                         <div className="flex items-center mt-2">
                           <button
-                            onClick={() =>
-                              handleUpdateQuantity(item.productId._id, item.quantity - 1)
-                            }
+                            onClick={() => handleUpdateQuantity(item.productId._id, item.quantity - 1)}
                             className="px-2 py-1 bg-gray-200 rounded hover:bg-gray-300"
                             disabled={item.quantity <= 1}
                           >
@@ -117,9 +110,7 @@ const Cart = () => {
                           </button>
                           <span className="mx-2">{item.quantity}</span>
                           <button
-                            onClick={() =>
-                              handleUpdateQuantity(item.productId._id, item.quantity + 1)
-                            }
+                            onClick={() => handleUpdateQuantity(item.productId._id, item.quantity + 1)}
                             className="px-2 py-1 bg-gray-200 rounded hover:bg-gray-300"
                           >
                             +
@@ -127,9 +118,7 @@ const Cart = () => {
                         </div>
                       </div>
                       <div className="text-right">
-                        <p className="text-lg font-bold">
-                          {(item.productId.price * item.quantity).toLocaleString()}₫
-                        </p>
+                        <p className="text-lg font-bold">{(price * item.quantity).toLocaleString()}₫</p>
                         <button
                           onClick={() => handleRemoveItem(item.productId._id)}
                           className="text-red-600 hover:underline mt-2"

@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
+import { Link, useNavigate } from 'react-router-dom'; // Added useNavigate
 import axios from 'axios';
 
 const AdminDashboard = () => {
   const [products, setProducts] = useState([]);
   const [users, setUsers] = useState([]);
-  const [currentUserId, setCurrentUserId] = useState(null); // Store the authenticated user's ID
+  const [currentUserId, setCurrentUserId] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [formData, setFormData] = useState({
@@ -25,9 +26,9 @@ const AdminDashboard = () => {
   const [totalProducts, setTotalProducts] = useState(0);
   const limit = 9;
   const [activeTab, setActiveTab] = useState('products');
+  const navigate = useNavigate(); // Added for navigation
 
   useEffect(() => {
-    // Fetch the authenticated user's ID when the component mounts
     const fetchCurrentUser = async () => {
       try {
         const token = localStorage.getItem('token');
@@ -44,7 +45,7 @@ const AdminDashboard = () => {
 
     if (activeTab === 'products') {
       fetchProducts();
-    } else {
+    } else if (activeTab === 'users') {
       fetchUsers();
     }
   }, [currentPage, activeTab]);
@@ -52,7 +53,9 @@ const AdminDashboard = () => {
   const fetchProducts = async () => {
     setLoading(true);
     try {
-      const response = await axios.get(`http://localhost:5000/api/products?page=${currentPage}&limit=${limit}`);
+      const response = await axios.get(
+        `http://localhost:5000/api/products?page=${currentPage}&limit=${limit}`
+      );
       setProducts(response.data.products || []);
       setTotalPages(response.data.totalPages || 1);
       setTotalProducts(response.data.totalProducts || 0);
@@ -80,11 +83,11 @@ const AdminDashboard = () => {
 
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
-    setFormData(prevState => {
+    setFormData((prevState) => {
       if (name === 'images') {
         return {
           ...prevState,
-          images: value.split(',').map(img => img.trim()).filter(img => img),
+          images: value.split(',').map((img) => img.trim()).filter((img) => img),
         };
       } else {
         return {
@@ -96,7 +99,7 @@ const AdminDashboard = () => {
   };
 
   const handleImageChange = (index, value) => {
-    setFormData(prevState => {
+    setFormData((prevState) => {
       const newImages = [...prevState.images];
       newImages[index] = value;
       return { ...prevState, images: newImages };
@@ -104,7 +107,7 @@ const AdminDashboard = () => {
   };
 
   const addImageField = () => {
-    setFormData(prevState => ({
+    setFormData((prevState) => ({
       ...prevState,
       images: [...prevState.images, ''],
     }));
@@ -152,9 +155,9 @@ const AdminDashboard = () => {
       console.error('Error saving product:', err.response?.data || err.message);
       setError(
         err.response?.data?.message ||
-        (typeof err.response?.data === 'string' && err.response.data.includes('Cannot POST')
-          ? 'Server error: POST route not found'
-          : 'Failed to save product')
+          (typeof err.response?.data === 'string' && err.response.data.includes('Cannot POST')
+            ? 'Server error: POST route not found'
+            : 'Failed to save product')
       );
     }
   };
@@ -236,7 +239,10 @@ const AdminDashboard = () => {
                 ? 'border-b-2 border-red-600 text-red-600'
                 : 'text-gray-600'
             }`}
-            onClick={() => setActiveTab('products')}
+            onClick={() => {
+              setActiveTab('products');
+              navigate('/admin');
+            }}
           >
             Product Management
           </button>
@@ -246,9 +252,25 @@ const AdminDashboard = () => {
                 ? 'border-b-2 border-red-600 text-red-600'
                 : 'text-gray-600'
             }`}
-            onClick={() => setActiveTab('users')}
+            onClick={() => {
+              setActiveTab('users');
+              navigate('/admin');
+            }}
           >
             User Management
+          </button>
+          <button
+            className={`py-2 px-4 font-semibold ${
+              activeTab === 'orders'
+                ? 'border-b-2 border-red-600 text-red-600'
+                : 'text-gray-600'
+            }`}
+            onClick={() => {
+              setActiveTab('orders');
+              navigate('/admin/orders');
+            }}
+          >
+            Order Management
           </button>
         </div>
 
@@ -471,25 +493,30 @@ const AdminDashboard = () => {
                         )}
                       </div>
                       <p className="text-sm mt-2">
-                        <span className="font-semibold">Price:</span> {(product.price).toLocaleString()}₫
+                        <span className="font-semibold">Price:</span>{' '}
+                        {product.price.toLocaleString()}₫
                       </p>
                       <p className="text-sm truncate">
-                        <span className="font-semibold">Category:</span> {product.category || 'N/A'}
+                        <span className="font-semibold">Category:</span>{' '}
+                        {product.category || 'N/A'}
                       </p>
                       <p className="text-sm truncate">
                         <span className="font-semibold">Brand:</span> {product.brand || 'N/A'}
                       </p>
                       <p className="text-sm">
-                        <span className="font-semibold">In Stock:</span> {product.inStock ? 'Yes' : 'No'}
+                        <span className="font-semibold">In Stock:</span>{' '}
+                        {product.inStock ? 'Yes' : 'No'}
                       </p>
                       <p className="text-sm">
                         <span className="font-semibold">Rating:</span> {product.rating}
                       </p>
                       <p className="text-sm">
-                        <span className="font-semibold">Sales Count:</span> {product.salesCount || 0}
+                        <span className="font-semibold">Sales Count:</span>{' '}
+                        {product.salesCount || 0}
                       </p>
                       <p className="text-sm">
-                        <span className="font-semibold">Discount:</span> {product.discount || 0}%
+                        <span className="font-semibold">Discount:</span>{' '}
+                        {product.discount || 0}%
                       </p>
                       <p className="text-sm">
                         <span className="font-semibold">Created At:</span>{' '}
@@ -560,7 +587,7 @@ const AdminDashboard = () => {
             {users.length > 0 ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
                 {users.map((user) => {
-                  const isCurrentUser = user._id === currentUserId; // Check if this is the authenticated user
+                  const isCurrentUser = user._id === currentUserId;
                   return (
                     <div key={user._id} className="border p-4 rounded shadow bg-white">
                       <h4 className="text-lg font-bold truncate">{user.name}</h4>
@@ -568,14 +595,14 @@ const AdminDashboard = () => {
                         <span className="font-semibold">Email:</span> {user.email}
                       </p>
                       <p className="text-sm">
-                        <span className="font-semibold">Admin:</span> {user.isAdmin ? 'Yes' : 'No'}
+                        <span className="font-semibold">Admin:</span>{' '}
+                        {user.isAdmin ? 'Yes' : 'No'}
                       </p>
                       <p className="text-sm">
                         <span className="font-semibold">Created At:</span>{' '}
                         {new Date(user.createdAt).toLocaleDateString()}
                       </p>
                       <div className="mt-3 flex space-x-2">
-                        {/* Admin Status Toggle */}
                         <button
                           onClick={() => handleAdminStatusChange(user._id, user.isAdmin)}
                           className={`py-1 px-3 rounded text-white ${
@@ -588,7 +615,6 @@ const AdminDashboard = () => {
                         >
                           {user.isAdmin ? 'Demote to User' : 'Promote to Admin'}
                         </button>
-                        {/* Delete User */}
                         <button
                           onClick={() => handleDeleteUser(user._id)}
                           className={`bg-red-600 text-white py-1 px-3 rounded hover:bg-red-700 ${
@@ -608,6 +634,15 @@ const AdminDashboard = () => {
               <p className="text-center text-gray-600">No users available.</p>
             )}
           </>
+        )}
+
+        {/* Order Management Tab */}
+        {activeTab === 'orders' && (
+          <div>
+            <p className="text-gray-600">
+              Navigate to the Order Management page to view and manage orders.
+            </p>
+          </div>
         )}
       </div>
     </div>

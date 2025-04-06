@@ -1,3 +1,4 @@
+const mongoose = require('mongoose');
 const User = require('../models/userModel');
 const Order = require('../models/orderModel');
 const bcrypt = require('bcryptjs');
@@ -139,27 +140,56 @@ const getMe = async (req, res) => {
 
 // Get User Orders
 const getUserOrders = async (req, res) => {
+  console.log('Entering getUserOrders, req.user:', req.user);
+  const userId = req.user?.id || req.user?._id;
+  if (!userId) {
+    console.error('No userId found in req.user');
+    return res.status(401).json({ message: 'User authentication failed: No user ID' });
+  }
+
+  if (!mongoose.Types.ObjectId.isValid(userId)) {
+    console.error('Invalid userId format:', userId);
+    return res.status(400).json({ message: 'Invalid user ID format' });
+  }
+
   try {
-    console.log('Fetching orders for user:', req.user._id); // Debug log
-    const orders = await Order.find({ userId: req.user._id }) // Changed 'user' to 'userId'
-      .populate('items.productId', 'name price')
+    console.log('Fetching orders for userId:', userId);
+    let orders = await Order.find({ userId })
+      .populate({
+        path: 'orderItems.productId',
+        select: 'name images price description',
+        model: 'Product',
+      })
+      .sort({ createdAt: -1 })
       .lean();
 
-    console.log('Orders found:', orders.length); // Debug log
-
     if (!orders || orders.length === 0) {
-      return res.json([]); // Return an empty array if no orders are found
+      console.log('No orders found for userId:', userId);
+      return res.status(200).json([]);
     }
 
-    // Filter out items with missing products
-    orders.forEach((order) => {
-      order.items = order.items.filter((item) => item.productId);
-    });
+    // Normalize orderItems to match Profile.js expectations
+    orders = orders.map(order => ({
+      ...order,
+      orderItems: order.orderItems.map(item => ({
+        ...item,
+        productId: item.productId?._id || item.productId,
+        name: item.productId?.name || item.name || 'Unknown Product',
+        price: item.price, // Use stored price from order
+        image: item.productId?.images?.[0] || item.image || null,
+        description: item.productId?.description || item.description || '',
+      })),
+    }));
 
-    res.json(orders);
-  } catch (err) {
-    console.error('Error in getUserOrders:', err.message);
-    res.status(500).json({ message: 'Server error' });
+    console.log('Orders fetched successfully:', orders);
+    res.status(200).json(orders);
+  } catch (error) {
+    console.error('Error in getUserOrders:', {
+      message: error.message,
+      stack: error.stack,
+      userId,
+    });
+    res.status(500).json({ message: 'Server error: Unable to fetch user orders' });
   }
 };
 

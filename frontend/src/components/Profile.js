@@ -176,24 +176,30 @@ const Profile = () => {
               <ul className="space-y-4">
                 {orders.map((order) => (
                   <li key={order._id} className="border p-4 rounded">
+                    <p className="text-sm text-gray-500">Order ID: {order._id}</p>
                     <p className="text-sm text-gray-500">
                       Date: {new Date(order.createdAt).toLocaleDateString()}
                     </p>
-                    <p className="font-semibold">Total: {(order.total).toLocaleString()}₫</p>
-                    <p>Status: {order.paymentStatus}</p>
+                    <p className="font-semibold">Total: {order.totalPrice.toLocaleString()}₫</p>
+                    <p>Status: {order.status} {order.isPaid ? '(Paid)' : '(Not Paid)'}</p>
+                    <p>Shipping: {order.shippingAddress.address}, {order.shippingAddress.city}, {order.shippingAddress.postalCode}, {order.shippingAddress.country}</p>
                     <ul className="mt-2 space-y-2">
-                      {order.items.map((item) => (
-                        <li
-                          key={item.productId?._id || item._id}
-                          className="text-sm text-gray-600"
-                        >
-                          {item.productId ? (
-                            `${item.productId.name} - ${(item.price).toLocaleString()}₫ (x${item.quantity})`
-                          ) : (
-                            <span className="text-red-500">
-                              Product not found - $${item.price} (x${item.quantity})
-                            </span>
+                      {order.orderItems.map((item, index) => (
+                        <li key={index} className="text-sm text-gray-600 flex items-center">
+                          {item.image && (
+                            <img
+                              src={item.image}
+                              alt={item.name || 'Product'}
+                              className="w-10 h-10 object-cover mr-2 rounded"
+                            />
                           )}
+                          <span>
+                            {item.name || 'Unknown Product'} -{' '}
+                            {(item.price || 0).toLocaleString()}₫ (x{item.quantity})
+                            {item.description && (
+                              <p className="text-xs text-gray-500">{item.description}</p>
+                            )}
+                          </span>
                         </li>
                       ))}
                     </ul>

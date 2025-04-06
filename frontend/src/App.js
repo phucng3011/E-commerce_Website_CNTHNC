@@ -16,6 +16,8 @@ import Profile from './components/Profile';
 import AdminDashboard from './components/AdminDashboard';
 import PrivateRoute from './components/PrivateRoute';
 import { CartProvider } from './context/CartContext';
+import AdminOrders from './components/AdminOrders';
+import AdminOrderDetails from './components/AdminOrderDetails';
 function App() {
   return (
     <CartProvider>
@@ -37,6 +39,8 @@ function App() {
             </Route>
             <Route element={<PrivateRoute isAdminRoute />}>
               <Route path="/admin" element={<AdminDashboard />} />
+              <Route path="/admin/orders" element={<AdminOrders />} />
+              <Route path="/admin/orders/:id" element={<AdminOrderDetails />} />
             </Route>
           </Routes>
         </div>
