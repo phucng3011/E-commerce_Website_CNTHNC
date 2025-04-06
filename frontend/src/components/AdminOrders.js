@@ -95,11 +95,11 @@ const AdminOrders = () => {
   if (error) return <div className="text-center py-10 text-red-500">{error}</div>;
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <h2 className="text-2xl font-bold mb-6">Manage Orders</h2>
+    <div>
+      <h2 className="text-2xl font-bold mb-6">Manage Orders (Total: {pagination.totalOrders})</h2>
 
       {/* Filter by Status */}
-      <div className="mb-6">
+      <div className="mb-4">
         <label className="mr-2 font-semibold">Filter by Status:</label>
         <select
           value={statusFilter}
@@ -116,43 +116,43 @@ const AdminOrders = () => {
       </div>
 
       {/* Orders Table */}
-      <div className="bg-white shadow rounded overflow-x-auto">
-        <table className="min-w-full">
+      <div className="bg-white rounded shadow-sm overflow-x-auto">
+        <table className="w-full text-left">
           <thead>
             <tr className="bg-gray-100">
-              <th className="py-3 px-4 text-left">Order ID</th>
-              <th className="py-3 px-4 text-left">Customer</th>
-              <th className="py-3 px-4 text-left">Total</th>
-              <th className="py-3 px-4 text-left">Status</th>
-              <th className="py-3 px-4 text-left">Date</th>
-              <th className="py-3 px-4 text-left">Actions</th>
+              <th className="p-3">Order ID</th>
+              <th className="p-3">Customer</th>
+              <th className="p-3">Total</th>
+              <th className="p-3">Status</th>
+              <th className="p-3">Date</th>
+              <th className="p-3">Actions</th>
             </tr>
           </thead>
           <tbody>
             {orders.length === 0 ? (
               <tr>
-                <td colSpan="6" className="py-4 px-4 text-center text-gray-600">
+                <td colSpan="6" className="p-3 text-center text-gray-600">
                   No orders found.
                 </td>
               </tr>
             ) : (
               orders.map((order) => (
-                <tr key={order._id} className="border-b">
-                  <td className="py-3 px-4">
+                <tr key={order._id} className="border-t">
+                  <td className="p-3">
                     <Link
                       to={`/admin/orders/${order._id}`}
-                      className="text-red-600 hover:underline"
+                      className="text-blue-600 hover:underline"
                     >
                       {order._id}
                     </Link>
                   </td>
-                  <td className="py-3 px-4">
-                    {order.userId?.name} ({order.userId?.email})
+                  <td className="p-3">
+                    {order.userId?.name || 'N/A'} ({order.userId?.email || 'N/A'})
                   </td>
-                  <td className="py-3 px-4">
-                    {order.totalPrice ? order.totalPrice.toLocaleString() : '0'} ₫
+                  <td className="p-3">
+                    {order.totalPrice ? order.totalPrice.toLocaleString() : '0'}₫
                   </td>
-                  <td className="py-3 px-4">
+                  <td className="p-3">
                     <select
                       value={order.status}
                       onChange={(e) => handleStatusUpdate(order._id, e.target.value)}
@@ -165,10 +165,10 @@ const AdminOrders = () => {
                       <option value="Cancelled">Cancelled</option>
                     </select>
                   </td>
-                  <td className="py-3 px-4">
+                  <td className="p-3">
                     {new Date(order.createdAt).toLocaleDateString()}
                   </td>
-                  <td className="py-3 px-4 flex space-x-2">
+                  <td className="p-3 flex space-x-2">
                     <Link
                       to={`/admin/orders/${order._id}`}
                       className="text-blue-600 hover:underline"

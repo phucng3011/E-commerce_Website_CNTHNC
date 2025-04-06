@@ -46,23 +46,19 @@ const AdminOrderDetails = () => {
   if (!order) return <div className="text-center py-10">Order not found</div>;
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div>
       <h2 className="text-2xl font-bold mb-6">Order Details</h2>
       <div className="bg-white shadow rounded p-6">
         <div className="flex justify-between mb-6">
           <div>
+            <p><strong>Order ID:</strong> {order._id}</p>
             <p>
-              <strong>Order ID:</strong> {order._id}
+              <strong>Customer:</strong> {order.userId?.name || 'N/A'} ({order.userId?.email || 'N/A'})
             </p>
-            <p>
-              <strong>Customer:</strong> {order.userId?.name} ({order.userId?.email})
-            </p>
-            <p>
-              <strong>Date:</strong> {new Date(order.createdAt).toLocaleDateString()}
-            </p>
+            <p><strong>Date:</strong> {new Date(order.createdAt).toLocaleDateString()}</p>
           </div>
           <div>
-            <Link to="/admin/orders" className="text-red-600 hover:underline">
+            <Link to="/admin/orders" className="text-blue-600 hover:underline">
               Back to Orders
             </Link>
           </div>
@@ -129,7 +125,7 @@ const AdminOrderDetails = () => {
         <div className="mb-6">
           <h3 className="text-lg font-semibold mb-2">Order Items</h3>
           <div className="space-y-4">
-            {order.orderItems.map((item, index) => (
+            {(order.cartItems || []).map((item, index) => (
               <div key={index} className="flex items-center border-b py-2">
                 <img
                   src={item.image || 'https://via.placeholder.com/50'}
@@ -154,15 +150,9 @@ const AdminOrderDetails = () => {
         <div>
           <h3 className="text-lg font-semibold mb-2">Order Summary</h3>
           <div className="space-y-2">
-            <p>
-              <strong>Items Price:</strong> {order.itemsPrice.toLocaleString()} ₫
-            </p>
-            <p>
-              <strong>Shipping Price:</strong> {order.shippingPrice.toLocaleString()} ₫
-            </p>
-            <p>
-              <strong>Tax Price:</strong> {order.taxPrice.toLocaleString()} ₫
-            </p>
+            <p><strong>Items Price:</strong> {order.itemsPrice.toLocaleString()} ₫</p>
+            <p><strong>Shipping Price:</strong> {order.shippingPrice.toLocaleString()} ₫</p>
+            <p><strong>Tax Price:</strong> {order.taxPrice.toLocaleString()} ₫</p>
             <p className="text-lg font-bold">
               <strong>Total Price:</strong> {order.totalPrice.toLocaleString()} ₫
             </p>
