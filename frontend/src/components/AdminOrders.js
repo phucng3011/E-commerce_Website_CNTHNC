@@ -147,7 +147,7 @@ const AdminOrders = () => {
                     </Link>
                   </td>
                   <td className="py-3 px-4">
-                    {order.user?.name} ({order.user?.email})
+                    {order.userId?.name} ({order.userId?.email})
                   </td>
                   <td className="py-3 px-4">
                     {order.totalPrice ? order.totalPrice.toLocaleString() : '0'} ₫

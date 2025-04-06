@@ -55,7 +55,7 @@ const AdminOrderDetails = () => {
               <strong>Order ID:</strong> {order._id}
             </p>
             <p>
-              <strong>Customer:</strong> {order.user?.name} ({order.user?.email})
+              <strong>Customer:</strong> {order.userId?.name} ({order.userId?.email})
             </p>
             <p>
               <strong>Date:</strong> {new Date(order.createdAt).toLocaleDateString()}
