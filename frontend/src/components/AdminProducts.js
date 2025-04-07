@@ -14,7 +14,7 @@ const AdminProducts = () => {
   const limit = 10; // Updated to match screenshot (10 items per page)
   const navigate = useNavigate();
 
-  // Filter states (from ProductList.js)
+  // Filter states
   const [filters, setFilters] = useState({
     category: '',
     minPrice: '',
@@ -23,9 +23,14 @@ const AdminProducts = () => {
     search: '',
   });
 
+  // Temporary states for search and price inputs
+  const [tempSearch, setTempSearch] = useState('');
+  const [tempMinPrice, setTempMinPrice] = useState('');
+  const [tempMaxPrice, setTempMaxPrice] = useState('');
+
   useEffect(() => {
     fetchProducts();
-  }, [currentPage]);
+  }, [currentPage, filters]); // Fetch products when currentPage or filters change
 
   const fetchProducts = async () => {
     setLoading(true);
@@ -40,7 +45,7 @@ const AdminProducts = () => {
         headers: { Authorization: `Bearer ${token}` },
       });
       setProducts(response.data.products || []);
-      setFilteredProducts(response.data.products || []); // Initially set filtered products
+      setFilteredProducts(response.data.products || []);
       setTotalPages(response.data.totalPages || 1);
       setTotalProducts(response.data.totalProducts || 0);
       setLoading(false);
@@ -50,26 +55,42 @@ const AdminProducts = () => {
     }
   };
 
+  const handleFilterChange = (e) => {
+    const { name, value } = e.target;
+    // For category and brand, apply immediately
+    if (name === 'category' || name === 'brand') {
+      const newFilters = { ...filters, [name]: value };
+      setFilters(newFilters);
+      setCurrentPage(1); // Reset to the first page when filters change
+    }
+    // For search and price, update temporary states
+    else if (name === 'search') {
+      setTempSearch(value);
+    } else if (name === 'minPrice') {
+      setTempMinPrice(value);
+    } else if (name === 'maxPrice') {
+      setTempMaxPrice(value);
+    }
+  };
+
   const handleSearchSubmit = (e) => {
     e.preventDefault();
-    applyFilters();
+    setFilters({ ...filters, search: tempSearch });
+    setCurrentPage(1);
   };
 
   const handlePriceFilterSubmit = (e) => {
     e.preventDefault();
-    const min = Number(filters.minPrice);
-    const max = Number(filters.maxPrice);
+    const min = Number(tempMinPrice);
+    const max = Number(tempMaxPrice);
 
     if (min && max && min > max) {
       alert('Minimum price must be less than or equal to maximum price.');
       return;
     }
-    applyFilters();
-  };
 
-  const handleFilterChange = (e) => {
-    const { name, value } = e.target;
-    setFilters({ ...filters, [name]: value });
+    setFilters({ ...filters, minPrice: tempMinPrice, maxPrice: tempMaxPrice });
+    setCurrentPage(1);
   };
 
   const handleClearFilters = () => {
@@ -81,31 +102,10 @@ const AdminProducts = () => {
       search: '',
     };
     setFilters(newFilters);
+    setTempSearch('');
+    setTempMinPrice('');
+    setTempMaxPrice('');
     setCurrentPage(1);
-    fetchProducts();
-  };
-
-  const applyFilters = async () => {
-    setLoading(true);
-    try {
-      const token = localStorage.getItem('token');
-      const query = new URLSearchParams({
-        ...filters,
-        page: 1,
-        limit,
-      }).toString();
-      const response = await axios.get(`http://localhost:5000/api/products?${query}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      setFilteredProducts(response.data.products || []);
-      setTotalPages(response.data.totalPages || 1);
-      setTotalProducts(response.data.totalProducts || 0);
-      setCurrentPage(1);
-      setLoading(false);
-    } catch (err) {
-      setError(err.response?.data?.message || 'Failed to fetch products');
-      setLoading(false);
-    }
   };
 
   const handleDelete = async (id) => {
@@ -132,7 +132,7 @@ const AdminProducts = () => {
 
   return (
     <div className="p-6 flex space-x-6">
-      {/* Filter Sidebar (Layout from screenshot, content from ProductList.js) */}
+      {/* Filter Sidebar */}
       <div className="w-64 space-y-6">
         <h3 className="text-lg font-semibold mb-2">Filters</h3>
 
@@ -143,8 +143,8 @@ const AdminProducts = () => {
             <input
               type="text"
               name="search"
-              value={filters.search}
-              onChange={(e) => setFilters({ ...filters, search: e.target.value })}
+              value={tempSearch}
+              onChange={handleFilterChange}
               placeholder="Search by product name..."
               className="border border-gray-300 rounded p-2 w-full"
               aria-label="Search products"
@@ -185,8 +185,8 @@ const AdminProducts = () => {
               <input
                 type="number"
                 name="minPrice"
-                value={filters.minPrice}
-                onChange={(e) => setFilters({ ...filters, minPrice: e.target.value })}
+                value={tempMinPrice}
+                onChange={handleFilterChange}
                 placeholder="Min"
                 className="border border-gray-300 rounded p-2 w-full"
                 aria-label="Minimum price"
@@ -196,8 +196,8 @@ const AdminProducts = () => {
               <input
                 type="number"
                 name="maxPrice"
-                value={filters.maxPrice}
-                onChange={(e) => setFilters({ ...filters, maxPrice: e.target.value })}
+                value={tempMaxPrice}
+                onChange={handleFilterChange}
                 placeholder="Max"
                 className="border border-gray-300 rounded p-2 w-full"
                 aria-label="Maximum price"
@@ -242,7 +242,7 @@ const AdminProducts = () => {
         </div>
       </div>
 
-      {/* Product List (Layout from screenshot, content from AdminProducts.js) */}
+      {/* Product List */}
       <div className="flex-1">
         {/* Header with Add Product Button and Tabs */}
         <div className="flex justify-between items-center mb-4">

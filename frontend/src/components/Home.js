@@ -70,51 +70,95 @@ const Home = () => {
       {/* New Products Section */}
       <div className="container mx-auto px-4 py-8">
         <h2 className="text-2xl font-bold mb-6 text-center">New Products</h2>
-        <Swiper
-          modules={[Navigation, Pagination, Autoplay]}
-          navigation
-          pagination={{ clickable: true }}
-          autoplay={{ delay: 3000, disableOnInteraction: false }} // Enable autoplay
-          loop={true} // Enable looping
-          spaceBetween={20}
-          slidesPerView={1}
-          breakpoints={{
-            640: { slidesPerView: 2 },
-            768: { slidesPerView: 3 },
-            1024: { slidesPerView: 4 },
-          }}
-        >
-          {newProducts.map((product) => (
-            <SwiperSlide key={product._id}>
-              <ProductCard product={product} />
-            </SwiperSlide>
-          ))}
-        </Swiper>
+        <div className="relative">
+          <Swiper
+            modules={[Navigation, Pagination, Autoplay]}
+            navigation={{
+              nextEl: '.swiper-button-next-new',
+              prevEl: '.swiper-button-prev-new',
+            }}
+            pagination={{
+              el: '.swiper-pagination-new',
+              clickable: true,
+            }}
+            autoplay={{ delay: 3000, disableOnInteraction: false }}
+            loop={true}
+            spaceBetween={20}
+            slidesPerView={1}
+            breakpoints={{
+              640: { slidesPerView: 2 },
+              768: { slidesPerView: 3 },
+              1024: { slidesPerView: 4 },
+            }}
+            className="pb-12" // Add padding-bottom to make space for pagination
+          >
+            {newProducts.map((product) => (
+              <SwiperSlide key={product._id}>
+                <ProductCard product={product} />
+              </SwiperSlide>
+            ))}
+          </Swiper>
+          {/* Custom Navigation Arrows */}
+          <div className="swiper-button-prev-new absolute top-1/2 left-[-40px] transform -translate-y-1/2 z-10 text-gray-600 hover:text-gray-800">
+            <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7"></path>
+            </svg>
+          </div>
+          <div className="swiper-button-next-new absolute top-1/2 right-[-40px] transform -translate-y-1/2 z-10 text-gray-600 hover:text-gray-800">
+            <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"></path>
+            </svg>
+          </div>
+          {/* Custom Pagination */}
+          <div className="swiper-pagination-new mt-4"></div>
+        </div>
       </div>
 
       {/* Top Selling Section */}
       <div className="container mx-auto px-4 py-8">
         <h2 className="text-2xl font-bold mb-6 text-center">Top Selling</h2>
-        <Swiper
-          modules={[Navigation, Pagination, Autoplay]}
-          navigation
-          pagination={{ clickable: true }}
-          autoplay={{ delay: 3000, disableOnInteraction: false }} // Enable autoplay
-          loop={true} // Enable looping
-          spaceBetween={20}
-          slidesPerView={1}
-          breakpoints={{
-            640: { slidesPerView: 2 },
-            768: { slidesPerView: 3 },
-            1024: { slidesPerView: 4 },
-          }}
-        >
-          {topSellingProducts.map((product) => (
-            <SwiperSlide key={product._id}>
-              <ProductCard product={product} />
-            </SwiperSlide>
-          ))}
-        </Swiper>
+        <div className="relative">
+          <Swiper
+            modules={[Navigation, Pagination, Autoplay]}
+            navigation={{
+              nextEl: '.swiper-button-next-top',
+              prevEl: '.swiper-button-prev-top',
+            }}
+            pagination={{
+              el: '.swiper-pagination-top',
+              clickable: true,
+            }}
+            autoplay={{ delay: 3000, disableOnInteraction: false }}
+            loop={true}
+            spaceBetween={20}
+            slidesPerView={1}
+            breakpoints={{
+              640: { slidesPerView: 2 },
+              768: { slidesPerView: 3 },
+              1024: { slidesPerView: 4 },
+            }}
+            className="pb-12" // Add padding-bottom to make space for pagination
+          >
+            {topSellingProducts.map((product) => (
+              <SwiperSlide key={product._id}>
+                <ProductCard product={product} />
+              </SwiperSlide>
+            ))}
+          </Swiper>
+          {/* Custom Navigation Arrows */}
+          <div className="swiper-button-prev-top absolute top-1/2 left-[-40px] transform -translate-y-1/2 z-10 text-gray-600 hover:text-gray-800">
+            <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7"></path>
+            </svg>
+          </div>
+          <div className="swiper-button-next-top absolute top-1/2 right-[-40px] transform -translate-y-1/2 z-10 text-gray-600 hover:text-gray-800">
+            <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"></path>
+            </svg>
+          </div>
+          {/* Custom Pagination */}
+          <div className="swiper-pagination-top mt-4"></div>
+        </div>
       </div>
     </div>
   );
