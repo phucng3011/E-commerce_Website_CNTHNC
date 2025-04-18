@@ -20,11 +20,9 @@ const Home = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        // Fetch new products (sorted by creation date or filtered by "isNew")
         const newResponse = await axios.get('http://localhost:5000/api/products?sort=-createdAt&limit=8');
         setNewProducts(newResponse.data.products || []);
 
-        // Fetch top-selling products (sorted by sales count)
         const topResponse = await axios.get('http://localhost:5000/api/products?sort=-salesCount&limit=8');
         setTopSellingProducts(topResponse.data.products || []);
       } catch (err) {
@@ -70,7 +68,7 @@ const Home = () => {
       {/* New Products Section */}
       <div className="container mx-auto px-4 py-8">
         <h2 className="text-2xl font-bold mb-6 text-center">New Products</h2>
-        <div className="relative">
+        <div className="relative px-8">
           <Swiper
             modules={[Navigation, Pagination, Autoplay]}
             navigation={{
@@ -83,81 +81,75 @@ const Home = () => {
             }}
             autoplay={{ delay: 3000, disableOnInteraction: false }}
             loop={true}
-            spaceBetween={20}
             slidesPerView={1}
             breakpoints={{
-              640: { slidesPerView: 2 },
-              768: { slidesPerView: 3 },
-              1024: { slidesPerView: 4 },
+              640: { slidesPerView: 1.5 },
+              768: { slidesPerView: 2.5 },
+              1024: { slidesPerView: 3.5 },
+              1280: { slidesPerView: 4.5 },
             }}
-            className="pb-12" // Add padding-bottom to make space for pagination
+            className="pb-12"
           >
             {newProducts.map((product) => (
-              <SwiperSlide key={product._id}>
+              <SwiperSlide key={product._id} className="flex justify-center">
                 <ProductCard product={product} />
               </SwiperSlide>
             ))}
           </Swiper>
-          {/* Custom Navigation Arrows */}
-          <div className="swiper-button-prev-new absolute top-1/2 left-[-40px] transform -translate-y-1/2 z-10 text-gray-600 hover:text-gray-800">
-            <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7"></path>
-            </svg>
+
+          {/* Custom Navigation Arrows - New */}
+          <div className="swiper-button-prev-new absolute top-1/2 -left-4 transform -translate-y-1/2 z-10 text-red-600 hover:text-red-700">
+            <i className="fa fa-chevron-left text-2xl" />
           </div>
-          <div className="swiper-button-next-new absolute top-1/2 right-[-40px] transform -translate-y-1/2 z-10 text-gray-600 hover:text-gray-800">
-            <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"></path>
-            </svg>
+          <div className="swiper-button-next-new absolute top-1/2 -right-4 transform -translate-y-1/2 z-10 text-red-600 hover:text-red-700">
+            <i className="fa fa-chevron-right text-2xl" />
           </div>
-          {/* Custom Pagination */}
-          <div className="swiper-pagination-new mt-4"></div>
+
+          <div className="swiper-pagination-new mt-4 flex justify-center" />
         </div>
       </div>
 
       {/* Top Selling Section */}
       <div className="container mx-auto px-4 py-8">
         <h2 className="text-2xl font-bold mb-6 text-center">Top Selling</h2>
-        <div className="relative">
+        <div className="relative px-8">
           <Swiper
             modules={[Navigation, Pagination, Autoplay]}
             navigation={{
-              nextEl: '.swiper-button-next-top',
-              prevEl: '.swiper-button-prev-top',
+              nextEl: '.swiper-button-next-new',
+              prevEl: '.swiper-button-prev-new',
             }}
             pagination={{
-              el: '.swiper-pagination-top',
+              el: '.swiper-pagination-new',
               clickable: true,
             }}
             autoplay={{ delay: 3000, disableOnInteraction: false }}
             loop={true}
-            spaceBetween={20}
             slidesPerView={1}
             breakpoints={{
-              640: { slidesPerView: 2 },
-              768: { slidesPerView: 3 },
-              1024: { slidesPerView: 4 },
+              640: { slidesPerView: 1.5 },
+              768: { slidesPerView: 2.5 },
+              1024: { slidesPerView: 3.5 },
+              1280: { slidesPerView: 4.5 },
             }}
-            className="pb-12" // Add padding-bottom to make space for pagination
+            className="pb-12"
           >
             {topSellingProducts.map((product) => (
-              <SwiperSlide key={product._id}>
+              <SwiperSlide key={product._id} className="flex justify-center">
                 <ProductCard product={product} />
               </SwiperSlide>
             ))}
           </Swiper>
-          {/* Custom Navigation Arrows */}
-          <div className="swiper-button-prev-top absolute top-1/2 left-[-40px] transform -translate-y-1/2 z-10 text-gray-600 hover:text-gray-800">
-            <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7"></path>
-            </svg>
+
+          {/* Custom Navigation Arrows - Top */}
+          <div className="swiper-button-prev-top absolute top-1/2 -left-4 transform -translate-y-1/2 z-10 text-red-600 hover:text-red-700">
+            <i className="fa fa-chevron-left text-2xl" />
           </div>
-          <div className="swiper-button-next-top absolute top-1/2 right-[-40px] transform -translate-y-1/2 z-10 text-gray-600 hover:text-gray-800">
-            <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"></path>
-            </svg>
+          <div className="swiper-button-next-top absolute top-1/2 -right-4 transform -translate-y-1/2 z-10 text-red-600 hover:text-red-700">
+            <i className="fa fa-chevron-right text-2xl" />
           </div>
-          {/* Custom Pagination */}
-          <div className="swiper-pagination-top mt-4"></div>
+
+          <div className="swiper-pagination-top mt-4 flex justify-center" />
         </div>
       </div>
     </div>

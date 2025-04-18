@@ -7,14 +7,12 @@ const ProductCard = ({ product }) => {
   const navigate = useNavigate();
   const user = JSON.parse(localStorage.getItem('user'));
 
-  // Calculate the discounted price
   const originalPrice = product.price;
-  const discountPercentage = product.discount || 0; // Default to 0 if discount is not provided
+  const discountPercentage = product.discount || 0;
   const discountedPrice = originalPrice - (originalPrice * (discountPercentage / 100));
 
   const handleAddToCart = async () => {
     if (!user) {
-      // If user is not logged in, redirect to login page
       navigate('/login');
       return;
     }
@@ -25,7 +23,7 @@ const ProductCard = ({ product }) => {
         'http://localhost:5000/api/cart',
         {
           productId: product._id,
-          quantity: 1, // Default quantity to 1
+          quantity: 1,
         },
         {
           headers: {
@@ -49,7 +47,7 @@ const ProductCard = ({ product }) => {
   };
 
   return (
-    <div className="col-md-4 col-xs-6 mb-6">
+    <div className="mx-auto"> {/* Đã xoá margin ngoài */}
       <div className="product bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 w-72 h-[450px] flex flex-col">
         {/* Product Image */}
         <div className="product-img relative flex-shrink-0">
@@ -105,22 +103,18 @@ const ProductCard = ({ product }) => {
               ></i>
             ))}
           </div>
-          {/* Sales Count */}
           <p className="product-sales text-gray-500 text-sm mt-2">
             <span className="font-semibold">Sales:</span> {product.salesCount || 0}
           </p>
           <div className="product-btns flex space-x-2 mt-2">
             <button className="add-to-wishlist text-gray-600 hover:text-red-600">
               <i className="fa fa-heart-o"></i>
-              <span className="tooltipp hidden">Add to Wishlist</span>
             </button>
             <button className="add-to-compare text-gray-600 hover:text-red-600">
               <i className="fa fa-exchange"></i>
-              <span className="tooltipp hidden">Add to Compare</span>
             </button>
             <button className="quick-view text-gray-600 hover:text-red-600">
               <i className="fa fa-eye"></i>
-              <span className="tooltipp hidden">Quick View</span>
             </button>
           </div>
         </div>

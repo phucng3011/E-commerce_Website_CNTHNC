@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import { BrowserRouter as Router, Route, Routes, useLocation } from 'react-router-dom';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import Header from './components/Header';
@@ -18,11 +18,20 @@ import AdminProducts from './components/AdminProducts';
 import AdminUsers from './components/AdminUsers';
 import AdminOrders from './components/AdminOrders';
 import AdminOrderDetails from './components/AdminOrderDetails';
-import CreateProduct from './components/CreateProduct'; // Added
-import EditProduct from './components/EditProduct'; // Added
+import CreateProduct from './components/CreateProduct';
+import EditProduct from './components/EditProduct';
 import PrivacyPolicy from './components/PrivacyPolicy';
 import PrivateRoute from './components/PrivateRoute';
 import { CartProvider } from './context/CartContext';
+import Success from './components/Success';
+
+// Component để kiểm tra và hiển thị Footer
+const FooterWrapper = () => {
+  const location = useLocation();
+  const isAdminRoute = location.pathname.startsWith('/admin');
+  
+  return !isAdminRoute ? <Footer /> : null;
+};
 
 function App() {
   return (
@@ -43,7 +52,7 @@ function App() {
           <Route element={<PrivateRoute />}>
             <Route path="/cart" element={<Cart />} />
             <Route path="/checkout" element={<Checkout />} />
-            <Route path="/success" element={<h1>Payment Successful!</h1>} />
+            <Route path="/success" element={<Success />} />
             <Route path="/profile" element={<Profile />} />
           </Route>
 
@@ -60,7 +69,7 @@ function App() {
             </Route>
           </Route>
         </Routes>
-        <Footer />
+        <FooterWrapper />
         <ToastContainer />
       </Router>
     </CartProvider>
