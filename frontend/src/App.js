@@ -24,6 +24,7 @@ import PrivacyPolicy from './components/PrivacyPolicy';
 import PrivateRoute from './components/PrivateRoute';
 import { CartProvider } from './context/CartContext';
 import Success from './components/Success';
+import ScrollToTop from './components/ScrollToTop';
 
 // Component để kiểm tra và hiển thị Footer
 const FooterWrapper = () => {
@@ -37,6 +38,7 @@ function App() {
   return (
     <CartProvider>
       <Router>
+        <ScrollToTop />
         <Header />
         <Navigation />
         <Routes>

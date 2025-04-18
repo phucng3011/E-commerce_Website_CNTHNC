@@ -1,9 +1,8 @@
-const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 const Order = require('../models/orderModel');
 const Cart = require('../models/cartModel');
 const Product = require('../models/productModel');
 
-// Create Order (Existing)
+// Create Order
 const createOrder = async (req, res) => {
   const {
     billingDetails,
@@ -13,6 +12,7 @@ const createOrder = async (req, res) => {
     shippingPrice,
     taxPrice,
     totalPrice,
+    paymentIntentId, // Added for Stripe
   } = req.body;
   const userId = req.user.id;
 
@@ -62,20 +62,10 @@ const createOrder = async (req, res) => {
       shippingPrice: calculatedShippingPrice,
       taxPrice: calculatedTaxPrice,
       totalPrice: calculatedTotalPrice,
-      paymentStatus: 'pending',
+      paymentStatus: paymentMethod === 'stripe' ? 'pending' : 'pending',
       status: 'Pending',
+      paymentIntentId: paymentMethod === 'stripe' ? paymentIntentId : undefined,
     });
-
-    let paymentIntent;
-    if (paymentMethod === 'stripe') {
-      paymentIntent = await stripe.paymentIntents.create({
-        amount: Math.round(calculatedTotalPrice * 100),
-        currency: 'vnd',
-        metadata: { orderId: order._id.toString() },
-      });
-      order.paymentIntentId = paymentIntent.id;
-      order.paymentStatus = paymentIntent.status;
-    }
 
     await order.save();
     await Cart.findOneAndUpdate({ userId }, { items: [] }, { new: true });
@@ -83,7 +73,6 @@ const createOrder = async (req, res) => {
     res.status(201).json({
       orderId: order._id,
       message: 'Order placed successfully',
-      ...(paymentMethod === 'stripe' && { clientSecret: paymentIntent.client_secret }),
     });
   } catch (error) {
     console.error('Error creating order:', error);
@@ -225,9 +214,8 @@ const deleteOrder = async (req, res) => {
   }
 };
 
-// Get User's Orders (Existing)
+// Get User's Orders
 const getUserOrders = async (req, res) => {
-  console.log('Entering getUserOrders, req.user:', req.user);
   const userId = req.user?.id || req.user?._id;
   if (!userId) {
     console.error('No userId found in req.user');
@@ -235,7 +223,6 @@ const getUserOrders = async (req, res) => {
   }
 
   try {
-    console.log('Fetching orders for userId:', userId);
     let orders = await Order.find({ userId })
       .populate({
         path: 'orderItems.productId',
@@ -251,13 +238,12 @@ const getUserOrders = async (req, res) => {
         ...item,
         productId: item.productId?._id || item.productId,
         name: item.productId?.name || item.name,
-        price: item.price, // Use stored price from order
+        price: item.price,
         image: item.productId?.images?.[0] || item.image,
         description: item.productId?.description || '',
       })),
     }));
 
-    console.log('Orders fetched:', orders);
     res.status(200).json(orders);
   } catch (error) {
     console.error('Error in getUserOrders:', error);

@@ -1,4 +1,3 @@
-// backend/controllers/cartController.js
 const Cart = require('../models/cartModel');
 const Product = require('../models/productModel');
 
@@ -28,12 +27,12 @@ const addToCart = async (req, res) => {
     );
     if (itemIndex > -1) {
       cart.items[itemIndex].quantity += quantity;
+      cart.items[itemIndex].price = product.price; // Update price in case it changed
     } else {
-      cart.items.push({ productId, quantity });
+      cart.items.push({ productId, quantity, price: product.price }); // Store price
     }
 
     await cart.save();
-    // Populate the productId field in the response
     const populatedCart = await Cart.findOne({ userId }).populate('items.productId');
     res.status(200).json(populatedCart);
   } catch (error) {
@@ -50,9 +49,16 @@ const getCart = async (req, res) => {
     if (!cart) {
       return res.status(200).json({ userId, items: [] });
     }
-    // Log the cart to debug
-    console.log('Fetched Cart:', cart);
-    res.status(200).json(cart);
+    // Ensure price is included in response
+    const formattedCart = {
+      ...cart.toObject(),
+      items: cart.items.map(item => ({
+        ...item.toObject(),
+        price: item.price || item.productId?.price || 0,
+      })),
+    };
+    console.log('Fetched Cart:', formattedCart);
+    res.status(200).json(formattedCart);
   } catch (error) {
     console.error('Error in getCart:', error);
     res.status(500).json({ message: error.message });
@@ -69,6 +75,11 @@ const updateCartItem = async (req, res) => {
       return res.status(404).json({ message: 'Cart not found' });
     }
 
+    const product = await Product.findById(productId);
+    if (!product) {
+      return res.status(404).json({ message: 'Product not found' });
+    }
+
     const itemIndex = cart.items.findIndex(
       (item) => item.productId.toString() === productId
     );
@@ -80,10 +91,10 @@ const updateCartItem = async (req, res) => {
       cart.items.splice(itemIndex, 1);
     } else {
       cart.items[itemIndex].quantity = quantity;
+      cart.items[itemIndex].price = product.price; // Update price
     }
 
     await cart.save();
-    // Populate the productId field in the response
     const populatedCart = await Cart.findOne({ userId }).populate('items.productId');
     res.status(200).json(populatedCart);
   } catch (error) {
@@ -106,7 +117,6 @@ const removeFromCart = async (req, res) => {
       (item) => item.productId.toString() !== productId
     );
     await cart.save();
-    // Populate the productId field in the response
     const populatedCart = await Cart.findOne({ userId }).populate('items.productId');
     res.status(200).json(populatedCart);
   } catch (error) {

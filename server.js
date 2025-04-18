@@ -5,6 +5,7 @@ const cors = require('cors');
 const passport = require('passport');
 const session = require('express-session');
 const { passport: passportConfig } = require('./config/passport');
+const bodyParser = require('body-parser');
 
 const app = express();
 
@@ -17,6 +18,8 @@ app.use(cors({
   credentials: true,
 }));
 app.use(express.json());
+// Raw body parser for Stripe webhook
+app.use('/api/payment/webhook', bodyParser.raw({ type: 'application/json' }));
 app.use(
   session({
     secret: process.env.SESSION_SECRET || 'your-secret-key',
@@ -33,7 +36,8 @@ app.use('/api/users', require('./routes/userRoutes'));
 app.use('/api/cart', require('./routes/cartRoutes'));
 app.use('/api/orders', require('./routes/orderRoutes'));
 app.use('/api/newsletter', require('./routes/newsletterRoutes'));
-app.use('/auth', require('./routes/authRoutes')); // New auth routes
+app.use('/auth', require('./routes/authRoutes'));
+app.use('/api/payment', require('./routes/paymentRoutes'));
 
 app.get('/', (req, res) => {
   res.send('Server is running');

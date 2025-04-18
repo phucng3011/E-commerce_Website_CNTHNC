@@ -116,11 +116,11 @@ const Home = () => {
           <Swiper
             modules={[Navigation, Pagination, Autoplay]}
             navigation={{
-              nextEl: '.swiper-button-next-new',
-              prevEl: '.swiper-button-prev-new',
+              nextEl: '.swiper-button-next-top',
+              prevEl: '.swiper-button-prev-top',
             }}
             pagination={{
-              el: '.swiper-pagination-new',
+              el: '.swiper-pagination-top',
               clickable: true,
             }}
             autoplay={{ delay: 3000, disableOnInteraction: false }}
