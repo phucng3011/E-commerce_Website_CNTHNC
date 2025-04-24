@@ -227,7 +227,7 @@ const AdminProducts = () => {
             <option value="HP">HP</option>
             <option value="Lenovo">Lenovo</option>
             <option value="Apple">Apple</option>
-            <option value="ASUS">ASUS</option>
+            <option value="Asus">Asus</option>
           </select>
         </div>
 

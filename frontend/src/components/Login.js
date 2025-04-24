@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
+import { CartContext } from '../context/CartContext';
 
 const Login = () => {
   const [email, setEmail] = useState('');
@@ -9,6 +10,7 @@ const Login = () => {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
+  const { setUser, setIsLoggingOut } = useContext(CartContext);
 
   useEffect(() => {
     const query = new URLSearchParams(location.search);
@@ -18,12 +20,14 @@ const Login = () => {
 
     if (token) {
       localStorage.setItem('token', token);
-      localStorage.setItem('user', JSON.stringify({ name, email }));
+      const userData = { name, email };
+      localStorage.setItem('user', JSON.stringify(userData));
+      setUser(userData);
       setLoading(false);
-      navigate('/');
-      window.location.reload();
+      setIsLoggingOut(false);
+      navigate(userData.isAdmin ? '/admin' : '/');
     }
-  }, [location, navigate]);
+  }, [location, navigate, setUser, setIsLoggingOut]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -36,9 +40,11 @@ const Login = () => {
         password,
       });
       localStorage.setItem('token', response.data.token);
-      localStorage.setItem('user', JSON.stringify(response.data));
-      navigate('/');
-      window.location.reload();
+      const userData = response.data;
+      localStorage.setItem('user', JSON.stringify(userData));
+      setUser(userData);
+      setIsLoggingOut(false);
+      navigate(userData.isAdmin ? '/admin' : '/');
     } catch (err) {
       setError(err.response?.data?.message || 'Login failed. Please try again.');
     } finally {

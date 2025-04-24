@@ -2,7 +2,6 @@ import React, { createContext, useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import { toast } from 'react-toastify';
 
-// Hàm debounce để giới hạn tần suất gọi
 const debounce = (func, wait) => {
   let timeout;
   return (...args) => {
@@ -15,7 +14,9 @@ export const CartContext = createContext();
 
 export const CartProvider = ({ children }) => {
   const [cart, setCart] = useState([]);
-  const [cartVersion, setCartVersion] = useState(0); // State để trigger fetchCart
+  const [user, setUser] = useState(null);
+  const [cartVersion, setCartVersion] = useState(0);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
 
   const fetchCart = useCallback(async () => {
     console.log('Fetching cart at:', new Date().toISOString());
@@ -37,7 +38,25 @@ export const CartProvider = ({ children }) => {
     }
   }, []);
 
-  // Debounced fetchCart
+  const fetchUser = useCallback(async () => {
+    try {
+      const token = localStorage.getItem('token');
+      if (token) {
+        const response = await axios.get('http://localhost:5000/api/users/me', {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        setUser(response.data);
+      } else {
+        setUser(null);
+      }
+    } catch (error) {
+      console.error('Error fetching user:', error);
+      setUser(null);
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+    }
+  }, []);
+
   const debouncedFetchCart = debounce(fetchCart, 500);
 
   const addToCart = async (productId, quantity) => {
@@ -49,7 +68,7 @@ export const CartProvider = ({ children }) => {
         { headers: { Authorization: `Bearer ${token}` } }
       );
       setCart(response.data.items);
-      setCartVersion(prev => prev + 1); // Trigger fetchCart
+      setCartVersion(prev => prev + 1);
       toast.success('Product added to cart!');
     } catch (error) {
       console.error('Error adding to cart:', error);
@@ -67,9 +86,11 @@ export const CartProvider = ({ children }) => {
         });
         setCart([]);
         setCartVersion(prev => prev + 1);
+        toast.success('Cart cleared');
       }
     } catch (error) {
       console.error('Error clearing cart:', error);
+      toast.error('Failed to clear cart');
     }
   };
 
@@ -85,18 +106,29 @@ export const CartProvider = ({ children }) => {
   };
 
   useEffect(() => {
-    fetchCart(); // Gọi lần đầu khi mount
-  }, [fetchCart]);
+    fetchCart();
+    fetchUser();
+  }, [fetchCart, fetchUser]);
 
-  // Fetch cart khi cartVersion thay đổi
   useEffect(() => {
     if (cartVersion > 0) {
-      debouncedFetchCart(); // Gọi debounced fetchCart
+      debouncedFetchCart();
     }
-  }, [cartVersion]);
+  }, [cartVersion, debouncedFetchCart]);
 
   return (
-    <CartContext.Provider value={{ cart, fetchCart, addToCart, clearCart, handleNewsletterSubmit }}>
+    <CartContext.Provider value={{
+      cart,
+      user,
+      setUser,
+      fetchCart,
+      addToCart,
+      clearCart,
+      handleNewsletterSubmit,
+      isLoggingOut,
+      setIsLoggingOut,
+      fetchUser,
+    }}>
       {children}
     </CartContext.Provider>
   );

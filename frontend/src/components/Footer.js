@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import axios from 'axios';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faFacebook, faTwitter, faInstagram, faLinkedin } from '@fortawesome/free-brands-svg-icons';
 
 const Footer = () => {
   const [email, setEmail] = useState('');
@@ -110,13 +112,18 @@ const Footer = () => {
                 </Link>
               </li>
               <li>
-                <Link to="/products?category=Accessories" className="hover:text-red-600">
-                  Accessories
+                <Link to="/products?category=Smartphones" className="hover:text-red-600">
+                  Smartphones
                 </Link>
               </li>
               <li>
-                <Link to="/products?category=Peripherals" className="hover:text-red-600">
-                  Peripherals
+                <Link to="/products?category=Cameras" className="hover:text-red-600">
+                  Cameras
+                </Link>
+              </li>
+              <li>
+                <Link to="/products?category=Accessories" className="hover:text-red-600">
+                  Accessories
                 </Link>
               </li>
             </ul>
@@ -153,7 +160,7 @@ const Footer = () => {
                   className="text-gray-400 hover:text-blue-600"
                   aria-label="Facebook"
                 >
-                  <i className="fa fa-facebook"></i>
+                  <FontAwesomeIcon icon={faFacebook} size="2x" />
                 </a>
               </li>
               <li>
@@ -164,7 +171,7 @@ const Footer = () => {
                   className="text-gray-400 hover:text-blue-400"
                   aria-label="Twitter"
                 >
-                  <i className="fa fa-twitter"></i>
+                  <FontAwesomeIcon icon={faTwitter} size="2x" />
                 </a>
               </li>
               <li>
@@ -175,7 +182,7 @@ const Footer = () => {
                   className="text-gray-400 hover:text-pink-600"
                   aria-label="Instagram"
                 >
-                  <i className="fa fa-instagram"></i>
+                  <FontAwesomeIcon icon={faInstagram} size="2x" />
                 </a>
               </li>
               <li>
@@ -186,7 +193,7 @@ const Footer = () => {
                   className="text-gray-400 hover:text-blue-700"
                   aria-label="LinkedIn"
                 >
-                  <i className="fa fa-linkedin"></i>
+                  <FontAwesomeIcon icon={faLinkedin} size="2x" />
                 </a>
               </li>
             </ul>

@@ -1,19 +1,32 @@
-import React, { useState } from 'react';
-import { Link, useNavigate, Outlet } from 'react-router-dom'; // Import Outlet
-import { FaBars, FaTimes, FaBox, FaShoppingCart, FaUsers, FaSignOutAlt } from 'react-icons/fa';
+import React, { useState, useContext } from 'react';
+import { Link, useNavigate, Route, Routes } from 'react-router-dom';
+import { FaBars, FaTimes, FaBox, FaShoppingCart, FaUsers, FaSignOutAlt, FaComment } from 'react-icons/fa';
+import AdminProducts from './AdminProducts';
+import AdminOrders from './AdminOrders';
+import AdminUsers from './AdminUsers';
+import AdminOrderDetails from './AdminOrderDetails';
+import CreateProduct from './CreateProduct';
+import EditProduct from './EditProduct';
+import AdminChat from './AdminChat';
+import { CartContext } from '../context/CartContext';
 
-const AdminLayout = ({ children }) => {
+const AdminLayout = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const navigate = useNavigate();
+  const { setUser, setIsLoggingOut, fetchUser } = useContext(CartContext);
 
   const toggleSidebar = () => {
     setIsSidebarOpen(!isSidebarOpen);
   };
 
   const handleLogout = () => {
+    setIsLoggingOut(true); // Báo hiệu đang đăng xuất
     localStorage.removeItem('token');
     localStorage.removeItem('user');
+    setUser(null);
+    fetchUser(); // Cập nhật user ngay lập tức
     navigate('/login');
+    setIsLoggingOut(false); // Reset trạng thái sau khi hoàn tất
   };
 
   return (
@@ -24,7 +37,6 @@ const AdminLayout = ({ children }) => {
           isSidebarOpen ? 'w-64' : 'w-16'
         } flex flex-col`}
       >
-        {/* Toggle Button */}
         <div className="p-4 flex justify-between items-center">
           {isSidebarOpen && <h2 className="text-xl font-bold">Admin Panel</h2>}
           <button onClick={toggleSidebar} className="text-white focus:outline-none">
@@ -32,7 +44,6 @@ const AdminLayout = ({ children }) => {
           </button>
         </div>
 
-        {/* Navigation Links */}
         <nav className="flex-1">
           <ul className="space-y-2">
             <li>
@@ -63,6 +74,15 @@ const AdminLayout = ({ children }) => {
               </Link>
             </li>
             <li>
+              <Link
+                to="/admin/chat"
+                className="flex items-center p-4 hover:bg-gray-700 transition-colors"
+              >
+                <FaComment className="mr-3" />
+                {isSidebarOpen && <span>Chat</span>}
+              </Link>
+            </li>
+            <li>
               <button
                 onClick={handleLogout}
                 className="flex items-center p-4 w-full text-left hover:bg-gray-700 transition-colors"
@@ -77,7 +97,16 @@ const AdminLayout = ({ children }) => {
 
       {/* Main Content */}
       <div className="flex-1 p-6">
-        <Outlet /> {/* Render child routes here */}
+        <Routes>
+          <Route path="products" element={<AdminProducts />} />
+          <Route path="products/create" element={<CreateProduct />} />
+          <Route path="products/edit/:id" element={<EditProduct />} />
+          <Route path="orders" element={<AdminOrders />} />
+          <Route path="orders/:id" element={<AdminOrderDetails />} />
+          <Route path="users" element={<AdminUsers />} />
+          <Route path="chat" element={<AdminChat />} />
+          <Route index element={<AdminProducts />} />
+        </Routes>
       </div>
     </div>
   );

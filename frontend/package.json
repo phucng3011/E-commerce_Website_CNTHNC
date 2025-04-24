@@ -4,6 +4,9 @@
   "private": true,
   "dependencies": {
     "@fortawesome/fontawesome-free": "^6.7.2",
+    "@fortawesome/fontawesome-svg-core": "^6.7.2",
+    "@fortawesome/free-brands-svg-icons": "^6.7.2",
+    "@fortawesome/react-fontawesome": "^0.2.2",
     "@stripe/react-stripe-js": "^3.6.0",
     "@stripe/stripe-js": "^6.1.0",
     "@testing-library/dom": "^10.4.0",
@@ -19,6 +22,7 @@
     "react-share": "^5.2.2",
     "react-slick": "^0.30.3",
     "react-toastify": "^11.0.5",
+    "socket.io-client": "^4.8.1",
     "swiper": "^11.2.6",
     "web-vitals": "^2.1.4"
   },

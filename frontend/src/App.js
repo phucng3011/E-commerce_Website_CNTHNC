@@ -1,5 +1,5 @@
-import React from 'react';
-import { BrowserRouter as Router, Route, Routes, useLocation } from 'react-router-dom';
+import React, { useContext } from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import Header from './components/Header';
@@ -22,16 +22,65 @@ import CreateProduct from './components/CreateProduct';
 import EditProduct from './components/EditProduct';
 import PrivacyPolicy from './components/PrivacyPolicy';
 import PrivateRoute from './components/PrivateRoute';
-import { CartProvider } from './context/CartContext';
+import { CartProvider, CartContext } from './context/CartContext';
 import Success from './components/Success';
 import ScrollToTop from './components/ScrollToTop';
+import Chat from './components/Chat';
+import AdminChat from './components/AdminChat';
 
-// Component để kiểm tra và hiển thị Footer
-const FooterWrapper = () => {
+const AppContent = () => {
+  const { user, isLoggingOut } = useContext(CartContext);
   const location = useLocation();
-  const isAdminRoute = location.pathname.startsWith('/admin');
-  
-  return !isAdminRoute ? <Footer /> : null;
+
+  const isAuthRoute = location.pathname === '/login' || location.pathname === '/register';
+
+  if (user?.isAdmin && !isLoggingOut) {
+    return (
+      <Routes>
+        <Route path="/admin" element={<AdminLayout />}>
+          <Route index element={<AdminProducts />} />
+          <Route path="products" element={<AdminProducts />} />
+          <Route path="products/create" element={<CreateProduct />} />
+          <Route path="products/edit/:id" element={<EditProduct />} />
+          <Route path="users" element={<AdminUsers />} />
+          <Route path="orders" element={<AdminOrders />} />
+          <Route path="orders/:id" element={<AdminOrderDetails />} />
+          <Route path="chat" element={<AdminChat />} />
+        </Route>
+        <Route path="*" element={<Navigate to="/admin" replace />} />
+      </Routes>
+    );
+  }
+
+  return (
+    <>
+      <Header />
+      <Navigation />
+      <Routes>
+        {/* Public Routes */}
+        <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
+        <Route path="/" element={<Home />} />
+        <Route path="/products" element={<ProductList />} />
+        <Route path="/product/:id" element={<ProductDetails />} />
+
+        {/* Protected Routes (User) */}
+        <Route element={<PrivateRoute />}>
+          <Route path="/cart" element={<Cart />} />
+          <Route path="/checkout" element={<Checkout />} />
+          <Route path="/success" element={<Success />} />
+          <Route path="/profile" element={<Profile />} />
+        </Route>
+
+        {/* Ngăn người dùng thường truy cập admin routes */}
+        <Route path="/admin/*" element={<Navigate to="/" replace />} />
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+      <Footer />
+      {!isAuthRoute && <Chat />}
+    </>
+  );
 };
 
 function App() {
@@ -39,40 +88,8 @@ function App() {
     <CartProvider>
       <Router>
         <ScrollToTop />
-        <Header />
-        <Navigation />
-        <Routes>
-          {/* Public Routes */}
-          <Route path="/privacy-policy" element={<PrivacyPolicy />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
-          <Route path="/" element={<Home />} />
-          <Route path="/products" element={<ProductList />} />
-          <Route path="/product/:id" element={<ProductDetails />} />
-
-          {/* Protected Routes (User) */}
-          <Route element={<PrivateRoute />}>
-            <Route path="/cart" element={<Cart />} />
-            <Route path="/checkout" element={<Checkout />} />
-            <Route path="/success" element={<Success />} />
-            <Route path="/profile" element={<Profile />} />
-          </Route>
-
-          {/* Admin Routes with AdminLayout */}
-          <Route element={<PrivateRoute isAdminRoute />}>
-            <Route path="/admin" element={<AdminLayout />}>
-              <Route index element={<AdminProducts />} />
-              <Route path="products" element={<AdminProducts />} />
-              <Route path="products/create" element={<CreateProduct />} />
-              <Route path="products/edit/:id" element={<EditProduct />} />
-              <Route path="users" element={<AdminUsers />} />
-              <Route path="orders" element={<AdminOrders />} />
-              <Route path="orders/:id" element={<AdminOrderDetails />} />
-            </Route>
-          </Route>
-        </Routes>
-        <FooterWrapper />
         <ToastContainer />
+        <AppContent />
       </Router>
     </CartProvider>
   );
