@@ -202,22 +202,6 @@ const ProductDetails = () => {
             </p>
 
             <div className="mb-4">
-              <label className="block mb-1 font-semibold">Size</label>
-              <select className="w-32 p-2 border border-gray-300 rounded">
-                <option>Small</option>
-                <option>Medium</option>
-                <option>Large</option>
-              </select>
-            </div>
-            <div className="mb-4">
-              <label className="block mb-1 font-semibold">Color</label>
-              <select className="w-32 p-2 border border-gray-300 rounded">
-                <option>Red</option>
-                <option>Black</option>
-                <option>Silver</option>
-              </select>
-            </div>
-            <div className="mb-4">
               <label className="block mb-1 font-semibold">Qty</label>
               <input
                 type="number"

@@ -125,7 +125,7 @@ const AdminOrderDetails = () => {
         <div className="mb-6">
           <h3 className="text-lg font-semibold mb-2">Order Items</h3>
           <div className="space-y-4">
-            {(order.cartItems || []).map((item, index) => (
+            {(order.orderItems || []).map((item, index) => (
               <div key={index} className="flex items-center border-b py-2">
                 <img
                   src={item.image || 'https://via.placeholder.com/50'}
