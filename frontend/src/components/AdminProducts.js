@@ -37,7 +37,7 @@ const AdminProducts = () => {
         page: currentPage,
         limit,
       }).toString();
-      const response = await axios.get(`http://localhost:5000/api/products?${query}`, {
+      const response = await axios.get(`${process.env.REACT_APP_API_URL}/api/products?${query}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setFilteredProducts(response.data.products || []);
@@ -110,7 +110,7 @@ const AdminProducts = () => {
   const handleDelete = async (id) => {
     const token = localStorage.getItem('token');
     try {
-      await axios.delete(`http://localhost:5000/api/products/${id}`, {
+      await axios.delete(`${process.env.REACT_APP_API_URL}/api/products/${id}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setCurrentPage(1);

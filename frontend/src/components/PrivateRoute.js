@@ -15,7 +15,7 @@ const PrivateRoute = ({ isAdminRoute = false }) => {
           throw new Error('No token found');
         }
 
-        const res = await axios.get('http://localhost:5000/api/users/me', {
+        const res = await axios.get(`${process.env.REACT_APP_API_URL}/api/users/me`, {
           headers: { Authorization: `Bearer ${token}` },
         });
 

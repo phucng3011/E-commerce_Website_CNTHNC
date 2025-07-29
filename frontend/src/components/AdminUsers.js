@@ -11,7 +11,7 @@ const AdminUsers = () => {
     const fetchCurrentUser = async () => {
       try {
         const token = localStorage.getItem('token');
-        const response = await axios.get('http://localhost:5000/api/users/me', {
+        const response = await axios.get(`${process.env.REACT_APP_API_URL}/api/users/me`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         setCurrentUserId(response.data._id);
@@ -28,7 +28,7 @@ const AdminUsers = () => {
     setLoading(true);
     try {
       const token = localStorage.getItem('token');
-      const response = await axios.get('http://localhost:5000/api/users', {
+      const response = await axios.get(`${process.env.REACT_APP_API_URL}/api/users`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setUsers(response.data || []);
@@ -43,7 +43,7 @@ const AdminUsers = () => {
     const token = localStorage.getItem('token');
     try {
       await axios.put(
-        `http://localhost:5000/api/users/${userId}/admin`,
+        `${process.env.REACT_APP_API_URL}/api/users/${userId}/admin`,
         { isAdmin: !isAdmin },
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -56,7 +56,7 @@ const AdminUsers = () => {
   const handleDeleteUser = async (userId) => {
     const token = localStorage.getItem('token');
     try {
-      await axios.delete(`http://localhost:5000/api/users/${userId}`, {
+      await axios.delete(`${process.env.REACT_APP_API_URL}/api/users/${userId}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       fetchUsers();

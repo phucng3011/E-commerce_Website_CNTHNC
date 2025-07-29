@@ -73,7 +73,7 @@ const CreateProduct = () => {
     };
 
     try {
-      await axios.post('http://localhost:5000/api/products/create', formattedData, {
+      await axios.post(`${process.env.REACT_APP_API_URL}/api/products/create`, formattedData, {
         headers: { Authorization: `Bearer ${token}` },
       });
       toast.success('Product created successfully!');

@@ -40,10 +40,10 @@ const Profile = () => {
     const fetchProfile = async () => {
       try {
         const [userRes, ordersRes] = await Promise.all([
-          axios.get('http://localhost:5000/api/users/me', {
+          axios.get(`${process.env.REACT_APP_API_URL}/api/users/me`, {
             headers: { Authorization: `Bearer ${token}` },
           }),
-          axios.get('http://localhost:5000/api/users/orders', {
+          axios.get(`${process.env.REACT_APP_API_URL}/api/users/orders`, {
             headers: { Authorization: `Bearer ${token}` },
           }),
         ]);
@@ -76,7 +76,7 @@ const Profile = () => {
     const token = localStorage.getItem('token');
     try {
       const response = await axios.put(
-        'http://localhost:5000/api/users/me',
+        `${process.env.REACT_APP_API_URL}/api/users/me`,
         formData,
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -99,7 +99,7 @@ const Profile = () => {
     const token = localStorage.getItem('token');
     try {
       await axios.put(
-        'http://localhost:5000/api/users/me/password',
+        `${process.env.REACT_APP_API_URL}/api/users/me/password`,
         { currentPassword, newPassword },
         { headers: { Authorization: `Bearer ${token}` } }
       );

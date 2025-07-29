@@ -13,7 +13,7 @@ const AdminOrderDetails = () => {
     const fetchOrder = async () => {
       try {
         const token = localStorage.getItem('token');
-        const response = await axios.get(`http://localhost:5000/api/orders/${id}`, {
+        const response = await axios.get(`${process.env.REACT_APP_API_URL}/api/orders/${id}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         setOrder(response.data);
@@ -30,7 +30,7 @@ const AdminOrderDetails = () => {
     try {
       const token = localStorage.getItem('token');
       const response = await axios.put(
-        `http://localhost:5000/api/orders/${id}`,
+        `${process.env.REACT_APP_API_URL}/api/orders/${id}`,
         updates,
         { headers: { Authorization: `Bearer ${token}` } }
       );

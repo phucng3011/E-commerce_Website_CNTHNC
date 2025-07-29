@@ -4,7 +4,7 @@ import axios from 'axios';
 import { toast } from 'react-toastify';
 import { CartContext } from '../context/CartContext';
 
-const socket = io('http://localhost:5000', { autoConnect: false });
+const socket = io(process.env.REACT_APP_API_URL, { autoConnect: false });
 
 const Chat = () => {
   const { user } = useContext(CartContext);
@@ -78,7 +78,7 @@ const Chat = () => {
       try {
         const token = localStorage.getItem('token');
         console.log('Fetching messages for receiver:', receiverId);
-        const response = await axios.get(`http://localhost:5000/api/chat/messages/${receiverId}`, {
+        const response = await axios.get(`${process.env.REACT_APP_API_URL}/api/chat/messages/${receiverId}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         console.log('Messages fetched:', response.data);

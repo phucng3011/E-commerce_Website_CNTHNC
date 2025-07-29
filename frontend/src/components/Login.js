@@ -35,7 +35,7 @@ const Login = () => {
     setError('');
 
     try {
-      const response = await axios.post('http://localhost:5000/api/users/login', {
+      const response = await axios.post(`${process.env.REACT_APP_API_URL}/api/users/login`, {
         email,
         password,
       });
@@ -53,7 +53,7 @@ const Login = () => {
   };
 
   const handleSocialLogin = (provider) => {
-    window.location.href = `http://localhost:5000/auth/${provider}`;
+    window.location.href = `${process.env.REACT_APP_API_URL}/auth/${provider}`;
   };
 
   return (

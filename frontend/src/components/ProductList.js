@@ -33,7 +33,7 @@ const ProductList = () => {
         page: params.page || pagination.currentPage,
         limit: 9,
       }).toString();
-      const response = await axios.get(`http://localhost:5000/api/products?${query}`);
+      const response = await axios.get(`${process.env.REACT_APP_API_URL}/api/products?${query}`);
 
       const fetchedProducts = Array.isArray(response.data.products)
         ? response.data.products

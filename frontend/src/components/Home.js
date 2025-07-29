@@ -20,10 +20,10 @@ const Home = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const newResponse = await axios.get('http://localhost:5000/api/products?sort=-createdAt&limit=8');
+        const newResponse = await axios.get(`${process.env.REACT_APP_API_URL}/api/products?sort=-createdAt&limit=8`);
         setNewProducts(newResponse.data.products || []);
 
-        const topResponse = await axios.get('http://localhost:5000/api/products?sort=-salesCount&limit=8');
+        const topResponse = await axios.get(`${process.env.REACT_APP_API_URL}/api/products?sort=-salesCount&limit=8`);
         setTopSellingProducts(topResponse.data.products || []);
       } catch (err) {
         setError(err.response?.data?.message || 'Failed to load data');

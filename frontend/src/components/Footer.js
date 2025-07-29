@@ -20,7 +20,7 @@ const Footer = () => {
     e.preventDefault();
     setSubmitting(true);
     try {
-      await axios.post('http://localhost:5000/api/newsletter', { email });
+      await axios.post(`${process.env.REACT_APP_API_URL}/api/newsletter`, { email });
       setMessage('Thank you for subscribing!');
       setEmail(''); // Clear input after successful submission
     } catch (error) {

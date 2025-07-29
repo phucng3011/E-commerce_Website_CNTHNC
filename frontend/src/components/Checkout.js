@@ -38,7 +38,7 @@ const CheckoutForm = ({ billingDetails, cart, paymentMethod, calculateTotals, ha
       console.log('Total Price for Stripe:', totalPrice);
 
       const response = await axios.post(
-        'http://localhost:5000/api/payment/create-payment-intent',
+        `${process.env.REACT_APP_API_URL}/api/payment/create-payment-intent`,
         { amount: Math.round(totalPrice), currency: 'vnd' },
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -92,15 +92,19 @@ const CheckoutForm = ({ billingDetails, cart, paymentMethod, calculateTotals, ha
           paymentIntentId: result.paymentIntent.id,
         };
 
-        await axios.post(
-          'http://localhost:5000/api/orders/create',
+        // Create the order in the backend
+        const res = await axios.post(
+          `${process.env.REACT_APP_API_URL}/api/orders/create`,
           orderData,
           { headers: { Authorization: `Bearer ${token}` } }
         );
 
-        await clearCart();
-        toast.success('Order placed successfully!');
-        navigate('/success');
+        // If order creation is successful, clear cart and navigate
+        if (res.status === 201) {
+          await clearCart();
+          toast.success('Order placed successfully!');
+          navigate('/success');
+        }
       }
     } catch (error) {
       console.error('Error processing Stripe payment:', error);
@@ -172,7 +176,7 @@ const Checkout = () => {
       try {
         console.log('Fetching initial cart and user data');
         await fetchCart();
-        const userRes = await axios.get('http://localhost:5000/api/users/me', {
+        const userRes = await axios.get(`${process.env.REACT_APP_API_URL}/api/users/me`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         const user = userRes.data;

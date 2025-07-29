@@ -3,7 +3,7 @@ import io from 'socket.io-client';
 import axios from 'axios';
 import { toast } from 'react-toastify';
 
-const socket = io('http://localhost:5000', { autoConnect: false });
+const socket = io(process.env.REACT_APP_API_URL, { autoConnect: false });
 
 const AdminChat = () => {
   const [users, setUsers] = useState([]);
@@ -75,7 +75,7 @@ const AdminChat = () => {
     const fetchUsers = async () => {
       try {
         const token = localStorage.getItem('token');
-        const response = await axios.get('http://localhost:5000/api/users', {
+        const response = await axios.get(`${process.env.REACT_APP_API_URL}/api/users`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         const nonAdminUsers = response.data.filter(user => !user.isAdmin);
@@ -94,7 +94,7 @@ const AdminChat = () => {
     const fetchMessages = async () => {
       try {
         const token = localStorage.getItem('token');
-        const response = await axios.get(`http://localhost:5000/api/chat/messages/${selectedUser._id}`, {
+        const response = await axios.get(`${process.env.REACT_APP_API_URL}/api/chat/messages/${selectedUser._id}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         setMessages(response.data);

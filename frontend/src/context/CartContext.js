@@ -23,7 +23,7 @@ export const CartProvider = ({ children }) => {
     try {
       const token = localStorage.getItem('token');
       if (token) {
-        const response = await axios.get('http://localhost:5000/api/cart', {
+        const response = await axios.get(`${process.env.REACT_APP_API_URL}/api/cart`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         console.log('Cart fetched:', response.data.items);
@@ -42,7 +42,7 @@ export const CartProvider = ({ children }) => {
     try {
       const token = localStorage.getItem('token');
       if (token) {
-        const response = await axios.get('http://localhost:5000/api/users/me', {
+        const response = await axios.get(`${process.env.REACT_APP_API_URL}/api/users/me`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         setUser(response.data);
@@ -62,8 +62,7 @@ export const CartProvider = ({ children }) => {
   const addToCart = async (productId, quantity) => {
     try {
       const token = localStorage.getItem('token');
-      const response = await axios.post(
-        'http://localhost:5000/api/cart',
+      const response = await axios.post(`${process.env.REACT_APP_API_URL}/api/cart`,
         { productId, quantity },
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -81,7 +80,7 @@ export const CartProvider = ({ children }) => {
     try {
       const token = localStorage.getItem('token');
       if (token) {
-        await axios.delete('http://localhost:5000/api/cart', {
+        await axios.delete(`${process.env.REACT_APP_API_URL}/api/cart`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         setCart([]);
@@ -98,7 +97,7 @@ export const CartProvider = ({ children }) => {
     e.preventDefault();
     const email = e.target.email.value;
     try {
-      await axios.post('http://localhost:5000/api/newsletter', { email });
+      await axios.post(`${process.env.REACT_APP_API_URL}/api/newsletter`, { email });
       toast.success('Subscribed successfully!');
     } catch (err) {
       toast.error(err.response?.data?.message || 'Failed to subscribe');

@@ -24,7 +24,7 @@ const AdminOrders = () => {
         limit: 10,
         status: statusFilter,
       }).toString();
-      const response = await axios.get(`http://localhost:5000/api/orders?${query}`, {
+      const response = await axios.get(`${process.env.REACT_APP_API_URL}/api/orders?${query}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
 
@@ -61,7 +61,7 @@ const AdminOrders = () => {
     try {
       const token = localStorage.getItem('token');
       const response = await axios.put(
-        `http://localhost:5000/api/orders/${orderId}`,
+        `${process.env.REACT_APP_API_URL}/api/orders/${orderId}`,
         { status: newStatus },
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -81,7 +81,7 @@ const AdminOrders = () => {
 
     try {
       const token = localStorage.getItem('token');
-      await axios.delete(`http://localhost:5000/api/orders/${orderId}`, {
+      await axios.delete(`${process.env.REACT_APP_API_URL}/api/orders/${orderId}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       toast.success('Order deleted successfully');

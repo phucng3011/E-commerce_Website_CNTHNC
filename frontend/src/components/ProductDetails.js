@@ -43,7 +43,7 @@ const ProductDetails = () => {
 
         if (fetchedProduct.category) {
           const relatedResponse = await axios.get(
-            `http://localhost:5000/api/products?category=${fetchedProduct.category}&limit=4`
+            `${process.env.REACT_APP_API_URL}/api/products?category=${fetchedProduct.category}&limit=4`
           );
           const relatedData = Array.isArray(relatedResponse.data.products)
             ? relatedResponse.data.products
@@ -81,7 +81,7 @@ const ProductDetails = () => {
 
     try {
       await axios.post(
-        `http://localhost:5000/api/products/${id}/reviews`,
+        `${process.env.REACT_APP_API_URL}/api/products/${id}/reviews`,
         { rating: review.rating, comment: review.comment },
         { headers: { Authorization: `Bearer ${token}` } }
       );

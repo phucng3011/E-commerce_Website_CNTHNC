@@ -110,12 +110,14 @@ E-commerce_Website_CNTHNC/
 
 ## Environment Variables
 
-The project requires two separate `.env` files to function.
+The project uses separate environment files for the backend and frontend to manage configuration for different environments (development, production).
 
 1.  **Backend (`/E-commerce_Website_CNTHNC/.env`):**
-    Create a `.env` file in the root directory and copy the content from `.env.example`.
+
+    Create a `.env` file in the root directory by copying from `.env.example`. This file is used for local development.
+
     ```env
-    # MongoDB Connection String
+    # MongoDB Connection String (get from MongoDB Atlas)
     MONGO_URI=your_mongodb_connection_string
 
     # Google OAuth Credentials
@@ -136,12 +138,27 @@ The project requires two separate `.env` files to function.
     STRIPE_WEBHOOK_SECRET=your_stripe_webhook_secret
     ```
 
-2.  **Frontend (`/E-commerce_Website_CNTHNC/frontend/.env`):**
-    Create a `.env` file in the `frontend` directory.
-    ```env
-    # Stripe Publishable Key for React App
-    REACT_APP_STRIPE_PUBLISHABLE_KEY=your_stripe_publishable_key
-    ```
+2.  **Frontend (`/E-commerce_Website_CNTHNC/frontend/`):**
+
+    The frontend uses different `.env` files for development and production. You will need to create these files.
+
+    -   **For Local Development:** Create a file named `.env.development`.
+        ```env
+        # The URL for the local backend server
+        REACT_APP_API_URL=http://localhost:5000
+
+        # Your Stripe Publishable Key
+        REACT_APP_STRIPE_PUBLISHABLE_KEY=your_stripe_publishable_key
+        ```
+
+    -   **For Production:** When deploying, you will configure these variables directly on your hosting provider (e.g., Vercel, Netlify). The `REACT_APP_API_URL` should point to your deployed backend URL.
+        ```env
+        # The URL for the deployed backend server
+        REACT_APP_API_URL=https://your-backend-on-render.com
+
+        # Your Stripe Publishable Key
+        REACT_APP_STRIPE_PUBLISHABLE_KEY=your_stripe_publishable_key
+        ```
 
 ## API Endpoints
 
@@ -326,11 +343,25 @@ Dự án yêu cầu hai file `.env` riêng biệt để hoạt động.
     ```
 
 2.  **Frontend (`/E-commerce_Website_CNTHNC/frontend/.env`):**
-    Tạo file `.env` trong thư mục `frontend`.
-    ```env
-    # Stripe Publishable Key for React App
-    REACT_APP_STRIPE_PUBLISHABLE_KEY=your_stripe_publishable_key
-    ```
+    Phía frontend sử dụng các file `.env` khác nhau cho môi trường phát triển và sản xuất. Bạn cần tạo các file này thủ công.
+
+    -   **Phát triển local:** Tạo file tên là `.env.development` trong thư mục `frontend`.
+        ```env
+        # Địa chỉ backend local
+        REACT_APP_API_URL=http://localhost:5000
+
+        # Stripe Publishable Key cho React App
+        REACT_APP_STRIPE_PUBLISHABLE_KEY=your_stripe_publishable_key
+        ```
+
+    -   **Triển khai production:** Khi deploy, bạn sẽ cấu hình các biến này trực tiếp trên nền tảng hosting (Vercel, Netlify, v.v). Biến `REACT_APP_API_URL` nên trỏ đến backend đã deploy.
+        ```env
+        # Địa chỉ backend đã deploy
+        REACT_APP_API_URL=https://your-backend-on-render.com
+
+        # Stripe Publishable Key cho React App
+        REACT_APP_STRIPE_PUBLISHABLE_KEY=your_stripe_publishable_key
+        ```
 
 ## API Endpoints
 

@@ -20,7 +20,7 @@ const ProductCard = ({ product }) => {
     try {
       const token = localStorage.getItem('token');
       await axios.post(
-        'http://localhost:5000/api/cart',
+        `${process.env.REACT_APP_API_URL}/api/cart`,
         {
           productId: product._id,
           quantity: 1,

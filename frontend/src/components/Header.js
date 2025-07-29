@@ -13,7 +13,7 @@ const Header = () => {
       try {
         const token = localStorage.getItem('token');
         if (token) {
-          const response = await axios.get('http://localhost:5000/api/cart', {
+          const response = await axios.get(`${process.env.REACT_APP_API_URL}/api/cart`, {
             headers: { Authorization: `Bearer ${token}` },
           });
           const count = response.data.items.reduce((sum, item) => sum + item.quantity, 0);

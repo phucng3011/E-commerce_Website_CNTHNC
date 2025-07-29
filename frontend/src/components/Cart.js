@@ -17,7 +17,7 @@ const Cart = () => {
     setLoading(true);
     try {
       const token = localStorage.getItem('token');
-      const response = await axios.get('http://localhost:5000/api/cart', {
+      const response = await axios.get(`${process.env.REACT_APP_API_URL}/api/cart`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       console.log('Cart Response:', response.data); // Debug log
@@ -33,7 +33,7 @@ const Cart = () => {
     try {
       const token = localStorage.getItem('token');
       const response = await axios.put(
-        'http://localhost:5000/api/cart',
+        `${process.env.REACT_APP_API_URL}/api/cart`,
         { productId, quantity },
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -48,7 +48,7 @@ const Cart = () => {
     try {
       const token = localStorage.getItem('token');
       const response = await axios.delete(
-        `http://localhost:5000/api/cart/${productId}`,
+        `${process.env.REACT_APP_API_URL}/api/cart/${productId}`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
       setCart(response.data);
