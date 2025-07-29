@@ -1,3 +1,166 @@
+# Full-Stack E-commerce Website (MERN Stack)
+
+![React](https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)
+![Node.js](https://img.shields.io/badge/Node.js-339933?style=for-the-badge&logo=nodedotjs&logoColor=white)
+![Express.js](https://img.shields.io/badge/Express.js-000000?style=for-the-badge&logo=express&logoColor=white)
+![MongoDB](https://img.shields.io/badge/MongoDB-4EA94B?style=for-the-badge&logo=mongodb&logoColor=white)
+![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white)
+
+This is a complete e-commerce website project built with the MERN stack, featuring a full range of functionalities from the user interface to an admin dashboard, including payment integration and real-time chat.
+
+## Table of Contents
+
+- [Key Features](#key-features)
+- [Technology Stack](#technology-stack)
+- [Folder Structure](#folder-structure)
+- [Installation and Setup](#installation-and-setup)
+- [Environment Variables](#environment-variables)
+- [API Endpoints](#api-endpoints)
+
+## Key Features
+
+- **User Authentication:** Register, log in, and log out using JWT and Passport.js (with support for Google login).
+- **Product Management:** View, search, and filter products by category.
+- **Shopping Cart:** Add, remove, and update the quantity of products in the cart.
+- **Payment Integration:** Integrated with Stripe for secure transaction processing.
+- **Order Management:** Users can review their order history.
+- **Admin Dashboard:**
+  - Manage Products (Add/Edit/Delete).
+  - Manage Users.
+  - Manage Orders.
+- **Real-time Chat:** Admins and users can chat directly via Socket.io.
+- **Responsive Design:** The interface is built with Tailwind CSS, ensuring compatibility across various devices.
+
+## Technology Stack
+
+| Component  | Technology                                                                                                                                                                                                                         |
+| :--------- | :--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Frontend** | React.js, React Router, Tailwind CSS, Axios, Socket.io Client, Stripe.js, Font Awesome                                                                                                                                            |
+| **Backend**  | Node.js, Express.js, MongoDB (with Mongoose), Passport.js (JWT, Google OAuth 2.0), Socket.io, Stripe, bcryptjs, dotenv                                                                                                                |
+| **DevTools** | Nodemon, React Scripts, Git, VS Code                                                                                                                                                                                               |
+
+## Folder Structure
+
+```
+E-commerce_Website_CNTHNC/
+├── config/         # DB, Passport.js configuration
+├── controllers/    # Request handling logic (MVC)
+├── frontend/       # All React.js code
+│   ├── public/
+│   └── src/
+│       ├── components/ # UI components
+│       ├── context/    # State management (CartContext)
+│       └── ...
+├── middleware/     # Authentication middleware
+├── models/         # Schemas for MongoDB
+├── routes/         # API routing for Express
+├── .env.example    # Sample environment variables file for backend
+└── server.js       # Main server initialization file
+```
+
+## Installation and Setup
+
+### Prerequisites
+
+- [Node.js](https://nodejs.org/) (version 14.x or later)
+- [npm](https://www.npmjs.com/) (usually comes with Node.js)
+- [MongoDB](https://www.mongodb.com/try/download/community) (install locally or use a cloud service like MongoDB Atlas)
+
+### Steps
+
+1.  **Clone the repository:**
+    ```sh
+    git clone https://github.com/phucng3011/E-commerce_Website_CNTHNC.git
+    cd E-commerce_Website_CNTHNC
+    ```
+
+2.  **Install Backend dependencies:**
+    ```sh
+    npm install
+    ```
+
+3.  **Install Frontend dependencies:**
+    ```sh
+    cd frontend
+    npm install
+    cd ..
+    ```
+
+4.  **Configure environment variables:**
+
+    See the [Environment Variables](#environment-variables) section below for details.
+
+5.  **Run the project:**
+
+    The project requires running both the backend server and the frontend client concurrently.
+
+    - **Run the Backend (from the root directory `E-commerce_Website_CNTHNC`):**
+      ```sh
+      npm run dev
+      ```
+      The server will run at `http://localhost:5000` (or the port you configure in the `.env` file).
+
+    - **Run the Frontend (open a new terminal, from the `E-commerce_Website_CNTHNC/frontend` directory):**
+      ```sh
+      cd frontend
+      npm start
+      ```
+      The React application will open at `http://localhost:3000`.
+
+## Environment Variables
+
+The project requires two separate `.env` files to function.
+
+1.  **Backend (`/E-commerce_Website_CNTHNC/.env`):**
+    Create a `.env` file in the root directory and copy the content from `.env.example`.
+    ```env
+    # MongoDB Connection String
+    MONGO_URI=your_mongodb_connection_string
+
+    # Google OAuth Credentials
+    GOOGLE_CLIENT_ID=your_google_client_id
+    GOOGLE_CLIENT_SECRET=your_google_client_secret
+
+    # JSON Web Token
+    JWT_SECRET=your_jwt_secret
+
+    # Express Session
+    SESSION_SECRET=your_session_secret
+
+    # Server Port
+    PORT=5000
+
+    # Stripe API Keys
+    STRIPE_SECRET_KEY=your_stripe_secret_key
+    STRIPE_WEBHOOK_SECRET=your_stripe_webhook_secret
+    ```
+
+2.  **Frontend (`/E-commerce_Website_CNTHNC/frontend/.env`):**
+    Create a `.env` file in the `frontend` directory.
+    ```env
+    # Stripe Publishable Key for React App
+    REACT_APP_STRIPE_PUBLISHABLE_KEY=your_stripe_publishable_key
+    ```
+
+## API Endpoints
+
+Here are the main API groups built in the project:
+
+- `GET /api/products`: Get a list of all products (supports search and filtering).
+- `GET /api/products/:id`: Get details of a single product.
+- `POST /api/users/register`: Register a new user.
+- `POST /api/users/login`: Log in.
+- `GET /api/cart`: Get the user's shopping cart information.
+- `POST /api/cart`: Add a product to the cart.
+- `POST /api/orders`: Create a new order.
+- `GET /api/orders/myorders`: Get the user's order history.
+- `POST /api/payment/create-payment-intent`: Create a payment session with Stripe.
+- `POST /api/chat`: Send a message (uses Socket.io).
+- `GET /api/chat/:userId`: Get chat history.
+
+---
+<br>
+
 # Website Thương mại điện tử Full-Stack (MERN Stack)
 
 ![React](https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)
