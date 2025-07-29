@@ -1,10 +1,9 @@
 require('dotenv').config();
 const express = require('express');
-const connectDB = require('./config/db');
+const { connectDB } = require('./config/db');
 const cors = require('cors');
 const passport = require('passport');
 const session = require('express-session');
-const { passport: passportConfig } = require('./config/passport');
 const bodyParser = require('body-parser');
 const http = require('http');
 const { Server } = require('socket.io');
@@ -21,7 +20,7 @@ const io = new Server(server, {
 });
 
 // Connect to MongoDB
-connectDB();
+// connectDB();
 
 // Middleware
 app.use(cors({
@@ -52,15 +51,15 @@ app.use('/api/chat', require('./routes/chatRoutes'));
 
 // Socket.IO logic
 io.on('connection', (socket) => {
-  console.log('User connected:', socket.id);
+  if (process.env.NODE_ENV !== 'test') {
+    console.log('User connected:', socket.id);
+  }
 
   socket.on('join_chat', (userId) => {
-    console.log(`User ${userId} joining room`);
     socket.join(userId);
   });
 
   socket.on('send_message', async ({ senderId, receiverId, content }) => {
-    console.log('Received message:', { senderId, receiverId, content });
     try {
       const message = new Message({
         sender: senderId,
@@ -68,7 +67,6 @@ io.on('connection', (socket) => {
         content,
       });
       await message.save();
-      console.log('Message saved:', message);
 
       const messageData = {
         sender: message.sender.toString(),
@@ -80,13 +78,14 @@ io.on('connection', (socket) => {
       io.to(receiverId).emit('receive_message', messageData);
       io.to(senderId).emit('receive_message', messageData);
     } catch (error) {
-      console.error('Error saving message:', error);
       socket.emit('message_error', { message: 'Failed to send message' });
     }
   });
 
   socket.on('disconnect', () => {
-    console.log('User disconnected:', socket.id);
+    if (process.env.NODE_ENV !== 'test') {
+      console.log('User disconnected:', socket.id);
+    }
   });
 });
 
@@ -94,5 +93,11 @@ app.get('/', (req, res) => {
   res.send('Server is running');
 });
 
-const PORT = process.env.PORT || 5000;
-server.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+if (process.env.NODE_ENV !== 'test') {
+  const PORT = process.env.PORT || 5000;
+  connectDB().then(() => {
+    server.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+  });
+}
+
+module.exports = { app, server };

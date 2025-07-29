@@ -1,10 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { FaStar, FaEdit, FaTrash } from 'react-icons/fa';
 
 const AdminProducts = () => {
-  const [products, setProducts] = useState([]);
+  
   const [filteredProducts, setFilteredProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -28,11 +28,7 @@ const AdminProducts = () => {
   const [tempMinPrice, setTempMinPrice] = useState('');
   const [tempMaxPrice, setTempMaxPrice] = useState('');
 
-  useEffect(() => {
-    fetchProducts();
-  }, [currentPage, filters]); // Fetch products when currentPage or filters change
-
-  const fetchProducts = async () => {
+  const fetchProducts = useCallback(async () => {
     setLoading(true);
     try {
       const token = localStorage.getItem('token');
@@ -44,7 +40,6 @@ const AdminProducts = () => {
       const response = await axios.get(`http://localhost:5000/api/products?${query}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      setProducts(response.data.products || []);
       setFilteredProducts(response.data.products || []);
       setTotalPages(response.data.totalPages || 1);
       setTotalProducts(response.data.totalProducts || 0);
@@ -53,7 +48,11 @@ const AdminProducts = () => {
       setError(err.response?.data?.message || 'Failed to fetch products');
       setLoading(false);
     }
-  };
+  }, [currentPage, filters, limit]);
+
+  useEffect(() => {
+    fetchProducts();
+  }, [fetchProducts]); // Fetch products when currentPage or filters change
 
   const handleFilterChange = (e) => {
     const { name, value } = e.target;

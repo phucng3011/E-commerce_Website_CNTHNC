@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { useLocation, useSearchParams, Link } from 'react-router-dom';
+import React, { useState, useEffect, useCallback } from 'react';
+import { useSearchParams, Link } from 'react-router-dom';
 import axios from 'axios';
 import ProductCard from './ProductCard';
 import { toast } from 'react-toastify';
@@ -22,8 +22,37 @@ const ProductList = () => {
     totalProducts: 0,
   });
 
-  const location = useLocation();
   const [searchParams, setSearchParams] = useSearchParams();
+
+  const fetchProducts = useCallback(async (params) => {
+    setLoading(true);
+    setError('');
+    try {
+      const query = new URLSearchParams({
+        ...params,
+        page: params.page || pagination.currentPage,
+        limit: 9,
+      }).toString();
+      const response = await axios.get(`http://localhost:5000/api/products?${query}`);
+
+      const fetchedProducts = Array.isArray(response.data.products)
+        ? response.data.products
+        : [];
+
+      setProducts(fetchedProducts);
+      setPagination({
+        currentPage: response.data.currentPage || 1,
+        totalPages: response.data.totalPages || 1,
+        totalProducts: response.data.totalProducts || 0,
+      });
+    } catch (err) {
+      console.error('Error fetching products:', err);
+      setError(err.response?.data?.message || 'Failed to fetch products. Please try again.');
+      setProducts([]);
+    } finally {
+      setLoading(false);
+    }
+  }, [pagination.currentPage]);
 
   useEffect(() => {
     const category = searchParams.get('category') || '';
@@ -52,37 +81,7 @@ const ProductList = () => {
       sort: sortParam,
       page: 1,
     });
-  }, [location.search]);
-
-  const fetchProducts = async (params) => {
-    setLoading(true);
-    setError('');
-    try {
-      const query = new URLSearchParams({
-        ...params,
-        page: params.page || pagination.currentPage,
-        limit: 9,
-      }).toString();
-      const response = await axios.get(`http://localhost:5000/api/products?${query}`);
-
-      const fetchedProducts = Array.isArray(response.data.products)
-        ? response.data.products
-        : [];
-
-      setProducts(fetchedProducts);
-      setPagination({
-        currentPage: response.data.currentPage || 1,
-        totalPages: response.data.totalPages || 1,
-        totalProducts: response.data.totalProducts || 0,
-      });
-    } catch (err) {
-      console.error('Error fetching products:', err);
-      setError(err.response?.data?.message || 'Failed to fetch products. Please try again.');
-      setProducts([]);
-    } finally {
-      setLoading(false);
-    }
-  };
+  }, [fetchProducts, searchParams]);
 
   const handleSearchSubmit = (e) => {
     e.preventDefault();

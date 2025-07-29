@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import { toast } from 'react-toastify';
 import { Link } from 'react-router-dom';
@@ -14,7 +14,7 @@ const AdminOrders = () => {
   });
   const [statusFilter, setStatusFilter] = useState('');
 
-  const fetchOrders = async (page = 1) => {
+  const fetchOrders = useCallback(async (page = 1) => {
     setLoading(true);
     setError('');
     try {
@@ -40,11 +40,11 @@ const AdminOrders = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [statusFilter]);
 
   useEffect(() => {
     fetchOrders();
-  }, [statusFilter]);
+  }, [fetchOrders]);
 
   const handlePageChange = (page) => {
     if (page >= 1 && page <= pagination.totalPages) {

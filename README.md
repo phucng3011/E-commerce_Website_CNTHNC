@@ -16,6 +16,7 @@ This is a complete e-commerce website project built with the MERN stack, featuri
 - [Installation and Setup](#installation-and-setup)
 - [Environment Variables](#environment-variables)
 - [API Endpoints](#api-endpoints)
+- [Testing](#testing)
 
 ## Key Features
 
@@ -158,6 +159,31 @@ Here are the main API groups built in the project:
 - `POST /api/chat`: Send a message (uses Socket.io).
 - `GET /api/chat/:userId`: Get chat history.
 
+## Testing
+
+This project uses the following tools and methodologies for testing:
+
+- **Backend (API):**
+  - **Jest:** A delightful JavaScript Testing Framework with a focus on simplicity.
+  - **Supertest:** A library for testing Node.js HTTP servers, used to make requests to the API endpoints.
+- **Frontend (UI):**
+  - **React Testing Library:** A library for testing React components in a way that resembles how users interact with them.
+  - **Jest:** Used as the test runner for React Testing Library.
+
+### How to Run Tests
+
+- **Backend:**
+  ```sh
+  # From the root directory
+  npm test
+  ```
+- **Frontend:**
+  ```sh
+  # From the frontend directory
+  cd frontend
+  npm test
+  ```
+
 ---
 <br>
 
@@ -178,7 +204,8 @@ Here are the main API groups built in the project:
 - [Cấu trúc thư mục](#cấu-trúc-thư-mục)
 - [Hướng dẫn cài đặt và khởi chạy](#hướng-dẫn-cài-đặt-và-khởi-chạy)
 - [Biến môi trường](#biến-môi-trường)
-- [API Endpoints](#api-endpoints)
+- [API Endpoints](#api-endpoints-1)
+- [Kiểm thử (Testing)](#kiểm-thử-testing)
 
 ## Tính năng nổi bật
 
@@ -321,4 +348,27 @@ Dự án yêu cầu hai file `.env` riêng biệt để hoạt động.
 - `POST /api/chat`: Gửi tin nhắn (sử dụng Socket.io).
 - `GET /api/chat/:userId`: Lấy lịch sử trò chuyện.
 
----
+## Kiểm thử (Testing)
+
+Dự án này sử dụng các công cụ và phương pháp sau để kiểm thử:
+
+- **Backend (API):**
+  - **Jest:** Một framework kiểm thử JavaScript tập trung vào sự đơn giản.
+  - **Supertest:** Thư viện để kiểm thử các máy chủ HTTP Node.js, được sử dụng để thực hiện các yêu cầu đến các điểm cuối API.
+- **Frontend (UI):**
+  - **React Testing Library:** Thư viện để kiểm thử các thành phần React theo cách giống như người dùng tương tác với chúng.
+  - **Jest:** Được sử dụng làm trình chạy thử nghiệm cho React Testing Library.
+
+### Cách chạy kiểm thử
+
+- **Backend:**
+  ```sh
+  # Từ thư mục gốc
+  npm test
+  ```
+- **Frontend:**
+  ```sh
+  # Từ thư mục frontend
+  cd frontend
+  npm test
+  ```

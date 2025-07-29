@@ -158,7 +158,7 @@ const ProductDetails = () => {
               ) : (
                 <img
                   src="https://via.placeholder.com/100"
-                  alt="No image available"
+                  alt="No thumbnail available"
                   className="w-20 h-20 object-cover border-2 border-gray-300"
                 />
               )}
