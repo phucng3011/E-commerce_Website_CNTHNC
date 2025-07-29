@@ -32,7 +32,7 @@ const ProductDetails = () => {
   useEffect(() => {
     const fetchProduct = async () => {
       try {
-        const response = await axios.get(`http://localhost:5000/api/products/${id}`);
+        const response = await axios.get(`${process.env.REACT_APP_API_URL}/api/products/${id}`);
         const fetchedProduct = response.data;
         setProduct(fetchedProduct);
         setSelectedImage(

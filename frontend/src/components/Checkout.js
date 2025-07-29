@@ -290,7 +290,7 @@ const Checkout = () => {
       };
 
       await axios.post(
-        'http://localhost:5000/api/orders/create',
+        `${process.env.REACT_APP_API_URL}/api/orders/create`,
         orderData,
         { headers: { Authorization: `Bearer ${token}` } }
       );
