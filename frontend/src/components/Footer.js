@@ -3,18 +3,18 @@ import { Link, useLocation } from 'react-router-dom';
 import axios from 'axios';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faFacebook, faTwitter, faInstagram, faLinkedin } from '@fortawesome/free-brands-svg-icons';
+import { faMapMarkerAlt, faPhone, faEnvelope } from '@fortawesome/free-solid-svg-icons';
 
 const Footer = () => {
   const [email, setEmail] = useState('');
   const [message, setMessage] = useState('');
   const [submitting, setSubmitting] = useState(false);
-  const location = useLocation(); // Use useLocation to detect route changes
+  const location = useLocation();
 
-  // Reset email and message on route change
   useEffect(() => {
-    setEmail(''); // Clear email input
-    setMessage(''); // Clear message
-  }, [location.pathname]); // Trigger when the pathname changes
+    setEmail('');
+    setMessage('');
+  }, [location.pathname]);
 
   const handleNewsletterSubmit = async (e) => {
     e.preventDefault();
@@ -22,7 +22,7 @@ const Footer = () => {
     try {
       await axios.post(`${process.env.REACT_APP_API_URL}/api/newsletter`, { email });
       setMessage('Thank you for subscribing!');
-      setEmail(''); // Clear input after successful submission
+      setEmail('');
     } catch (error) {
       setMessage('Failed to subscribe. Please try again.');
     } finally {
@@ -34,7 +34,6 @@ const Footer = () => {
     <footer className="bg-gray-900 text-white">
       <div className="bg-gray-100 py-8 text-gray-900">
         <div className="container mx-auto px-4">
-          {/* Newsletter Section */}
           <div className="newsletter mb-10">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
               <div>
@@ -81,9 +80,7 @@ const Footer = () => {
       </div>
 
       <div className="container mx-auto px-4 py-10">
-        {/* Footer Content */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-          {/* Contact Info */}
           <div>
             <h3 className="text-xl font-bold mb-4">About Us</h3>
             <p className="mb-2">
@@ -91,18 +88,17 @@ const Footer = () => {
             </p>
             <ul className="space-y-2">
               <li>
-                <i className="fa fa-map-marker mr-2"></i> 123 Tech Street, City, Country
+                <FontAwesomeIcon icon={faMapMarkerAlt} className="mr-2" /> 123 Tech Street, City, Country
               </li>
               <li>
-                <i className="fa fa-phone mr-2"></i> +123-456-7890
+                <FontAwesomeIcon icon={faPhone} className="mr-2" /> +123-456-7890
               </li>
               <li>
-                <i className="fa fa-envelope mr-2"></i> support@techstore.com
+                <FontAwesomeIcon icon={faEnvelope} className="mr-2" /> support@techstore.com
               </li>
             </ul>
           </div>
 
-          {/* Categories */}
           <div>
             <h3 className="text-xl font-bold mb-4">Categories</h3>
             <ul className="space-y-2">
@@ -129,7 +125,6 @@ const Footer = () => {
             </ul>
           </div>
 
-          {/* Information */}
           <div>
             <h3 className="text-xl font-bold mb-4">Information</h3>
             <ul className="space-y-2">
@@ -148,7 +143,6 @@ const Footer = () => {
             </ul>
           </div>
 
-          {/* Social Media */}
           <div>
             <h3 className="text-xl font-bold mb-4">Follow Us</h3>
             <ul className="flex space-x-4">
@@ -200,7 +194,6 @@ const Footer = () => {
           </div>
         </div>
 
-        {/* Copyright */}
         <div className="mt-10 border-t border-gray-700 pt-4 text-center">
           <p>&copy; {new Date().getFullYear()} Tech Store. All Rights Reserved.</p>
         </div>

@@ -11,12 +11,17 @@ This is a complete e-commerce website project built with the MERN stack, featuri
 ## Table of Contents
 
 - [Key Features](#key-features)
+- [Demo](#demo)
 - [Technology Stack](#technology-stack)
 - [Folder Structure](#folder-structure)
 - [Installation and Setup](#installation-and-setup)
 - [Environment Variables](#environment-variables)
 - [API Endpoints](#api-endpoints)
 - [Testing](#testing)
+
+## Demo
+
+Link demo: [https://e-commerce-website-cnthnc.vercel.app/](https://e-commerce-website-cnthnc.vercel.app/)
 
 ## Key Features
 
@@ -30,15 +35,20 @@ This is a complete e-commerce website project built with the MERN stack, featuri
   - Manage Users.
   - Manage Orders.
 - **Real-time Chat:** Admins and users can chat directly via Socket.io.
+- **Newsletter Subscription:** Users can subscribe to a newsletter.
+- **Enhanced UI Features:**
+    - **Product Sliders:** Engaging product carousels on the homepage.
+    - **Toast Notifications:** User-friendly feedback for actions.
+    - **Social Sharing:** Share products on social media.
 - **Responsive Design:** The interface is built with Tailwind CSS, ensuring compatibility across various devices.
 
 ## Technology Stack
 
-| Component  | Technology                                                                                                                                                                                                                         |
-| :--------- | :--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Frontend** | React.js, React Router, Tailwind CSS, Axios, Socket.io Client, Stripe.js, Font Awesome                                                                                                                                            |
-| **Backend**  | Node.js, Express.js, MongoDB (with Mongoose), Passport.js (JWT, Google OAuth 2.0), Socket.io, Stripe, bcryptjs, dotenv                                                                                                                |
-| **DevTools** | Nodemon, React Scripts, Git, VS Code                                                                                                                                                                                               |
+| Component  | Technology                                                                                                                                                                                                                                |
+| :--------- | :---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Frontend** | React.js, React Router, Tailwind CSS, Axios, Socket.io Client, Stripe.js, Font Awesome, Swiper, react-toastify, react-share                                                                                                                                            |
+| **Backend**  | Node.js, Express.js, MongoDB (with Mongoose), Passport.js (JWT, Google OAuth 2.0), Socket.io, Stripe, bcryptjs, dotenv                                                                                                                       |
+| **DevTools** | Nodemon, React Scripts, Git, VS Code                                                                                                                                                                                                      |
 
 ## Folder Structure
 
@@ -217,12 +227,17 @@ This project uses the following tools and methodologies for testing:
 ## Mục lục
 
 - [Tính năng nổi bật](#tính-năng-nổi-bật)
+- [Demo](#demo-1)
 - [Công nghệ sử dụng](#công-nghệ-sử-dụng)
 - [Cấu trúc thư mục](#cấu-trúc-thư-mục)
 - [Hướng dẫn cài đặt và khởi chạy](#hướng-dẫn-cài-đặt-và-khởi-chạy)
 - [Biến môi trường](#biến-môi-trường)
 - [API Endpoints](#api-endpoints-1)
 - [Kiểm thử (Testing)](#kiểm-thử-testing)
+
+## Demo
+
+Link demo: [https://e-commerce-website-cnthnc.vercel.app/](https://e-commerce-website-cnthnc.vercel.app/)
 
 ## Tính năng nổi bật
 
@@ -236,15 +251,20 @@ This project uses the following tools and methodologies for testing:
   - Quản lý người dùng.
   - Quản lý đơn hàng.
 - **Trò chuyện thời gian thực:** Admin và người dùng có thể trò chuyện trực tiếp qua Socket.io.
+- **Đăng ký nhận tin:** Người dùng có thể đăng ký để nhận bản tin.
+- **Tính năng giao diện nâng cao:**
+    - **Slider sản phẩm:** Các băng chuyền sản phẩm hấp dẫn ở trang chủ.
+    - **Thông báo (Toast):** Phản hồi thân thiện với người dùng cho các hành động.
+    - **Chia sẻ mạng xã hội:** Chia sẻ sản phẩm lên mạng xã hội.
 - **Thiết kế Responsive:** Giao diện được xây dựng với Tailwind CSS, tương thích trên nhiều thiết bị.
 
 ## Công nghệ sử dụng
 
-| Phần      | Công nghệ                                                                                                                                                                                                                         |
-| :--------- | :--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Frontend** | React.js, React Router, Tailwind CSS, Axios, Socket.io Client, Stripe.js, Font Awesome                                                                                                                                            |
-| **Backend**  | Node.js, Express.js, MongoDB (với Mongoose), Passport.js (JWT, Google OAuth 2.0), Socket.io, Stripe, bcryptjs, dotenv                                                                                                                |
-| **DevTools** | Nodemon, React Scripts, Git, VS Code                                                                                                                                                                                               |
+| Phần      | Công nghệ                                                                                                                                                                                                                                |
+| :--------- | :---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Frontend** | React.js, React Router, Tailwind CSS, Axios, Socket.io Client, Stripe.js, Font Awesome, Swiper, react-toastify, react-share                                                                                                                                            |
+| **Backend**  | Node.js, Express.js, MongoDB (với Mongoose), Passport.js (JWT, Google OAuth 2.0), Socket.io, Stripe, bcryptjs, dotenv                                                                                                                       |
+| **DevTools** | Nodemon, React Scripts, Git, VS Code                                                                                                                                                                                                      |
 
 ## Cấu trúc thư mục
 

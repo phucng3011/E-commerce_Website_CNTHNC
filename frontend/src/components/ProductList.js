@@ -30,7 +30,7 @@ const ProductList = () => {
     try {
       const query = new URLSearchParams({
         ...params,
-        page: params.page || pagination.currentPage,
+        page: params.page || 1,
         limit: 9,
       }).toString();
       const response = await axios.get(`${process.env.REACT_APP_API_URL}/api/products?${query}`);
@@ -52,7 +52,7 @@ const ProductList = () => {
     } finally {
       setLoading(false);
     }
-  }, [pagination.currentPage]);
+  }, []);
 
   useEffect(() => {
     const category = searchParams.get('category') || '';
